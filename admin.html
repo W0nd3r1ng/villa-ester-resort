@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Villa Ester Resort</title>
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f6;
+            display: flex; /* Use flexbox for main layout */
+            flex-direction: row; /* Arrange children in a row */
+            height: 100vh; /* Set body to full viewport height */
+            overflow: hidden; /* Hide body scrollbar, main content will scroll */
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            height: 100%; /* Take full height of parent (body) */
+            display: flex;
+            flex-direction: column;
+            overflow-y: hidden; /* Prevent sidebar from scrolling */
+            flex-shrink: 0; /* Prevent sidebar from shrinking */
+        }
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .sidebar-menu ul {
+            list-style: none;
+            padding: 0;
+        }
+        .sidebar-menu li {
+            margin-bottom: 10px;
+        }
+        .sidebar-menu a {
+            text-decoration: none;
+            color: #333;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            border-radius: 5px;
+        }
+        .sidebar-menu a:hover, .sidebar-menu a.active {
+            background-color: #e0e0e0;
+            color: #6a0dad;
+        }
+        .sidebar-menu a i {
+            margin-right: 10px;
+        }
+        .settings-section {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        .admin-user-section {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            border-top: 1px solid #eee;
+            margin-top: auto; /* Pushes the section to the bottom */
+        }
+        .admin-user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .admin-user-name {
+            font-weight: bold;
+            margin: 0;
+        }
+        .admin-user-role {
+            color: #777;
+            font-size: 0.9em;
+            margin: 0;
+        }
+        .main-content {
+            flex-grow: 1;
+            flex-shrink: 0;
+            padding: 40px;
+            overflow-y: auto; /* Make main content scrollable */
+            height: 100%; /* Take full height of parent (body) */
+            box-sizing: border-box;
+        }
+        .dashboard-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .card {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .card .icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+            color: #6a0dad;
+        }
+        .card h3 {
+            margin: 0 0 5px;
+            font-size: 1.5em;
+        }
+        .card p {
+            color: #777;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+        .card button {
+            background-color: #6a0dad;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .card button:hover {
+            background-color: #5a099a;
+        }
+        .room-occupancy-status {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        .room-occupancy-status table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .room-occupancy-status th,
+        .room-occupancy-status td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        .room-occupancy-status th {
+            background-color: #f8f8f8;
+            color: #333;
+            font-weight: bold;
+        }
+        .room-occupancy-status tr:last-child td {
+            border-bottom: none;
+        }
+        .room-occupancy-status .occupied {
+            color: #e74c3c; /* Red color for occupied */
+            font-weight: bold;
+        }
+        .room-occupancy-status .vacant {
+            color: #2ecc71; /* Green color for vacant */
+            font-weight: bold;
+        }
+
+        /* Booking Menu Tab Styles */
+        .content-header {
+            margin-bottom: 30px;
+        }
+
+        .content-header h1 {
+            margin: 0;
+            font-size: 1.8em;
+            color: #333;
+        }
+
+        .search-label {
+            font-size: 1.1em;
+            color: #333;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .search-input-wrapper {
+            flex-grow: 1;
+            position: relative;
+        }
+
+        .search-bar input[type="text"] {
+            width: 100%;
+            padding: 12px 15px 12px 40px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1em;
+            color: #333;
+            box-sizing: border-box;
+            background-color: #f8f9fa;
+        }
+
+        .search-bar .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #888;
+            font-size: 20px;
+        }
+
+        .search-bar .btn.filter-btn {
+            background-color: #d8c8ff;
+            color: #6a0dad;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            font-size: 1em;
+        }
+
+        .search-bar .btn.filter-btn:hover {
+            background-color: #c4b5ff;
+        }
+
+        .guest-list-header {
+            font-size: 1.1em;
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: 500;
+            margin-top: 25px;
+        }
+
+        #booking-list-container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .arrival-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 25px;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s;
+        }
+
+        .arrival-item:last-child {
+            border-bottom: none;
+        }
+
+        .arrival-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .arrival-details {
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+        }
+
+        .arrival-details .person-icon {
+            font-size: 20px;
+            color: #666;
+            margin-right: 15px;
+        }
+
+        .guest-info {
+            display: flex;
+            flex-direction: column;
+            margin-right: 50px;
+            min-width: 150px;
+        }
+
+        .guest-info .guest-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 1em;
+        }
+
+        .room-details {
+            display: flex;
+            flex-direction: column;
+            margin-right: 50px;
+            min-width: 180px;
+        }
+
+        .room-details .room-number-text {
+            font-weight: 500;
+            color: #333;
+            font-size: 1em;
+        }
+
+        .room-details .room-type-text {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 2px;
+        }
+
+        .booking-info {
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+            font-size: 0.9em;
+            color: #777;
+            justify-content: space-between;
+            max-width: 400px;
+        }
+
+        .booking-info .check-in,
+        .booking-info .check-out,
+        .booking-info .status {
+            white-space: nowrap;
+            margin-right: 20px;
+        }
+
+        .booking-info .status {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .arrival-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .arrival-actions .action-btn {
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 5px;
+            border-radius: 50%;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .arrival-actions .action-btn:hover {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+
+        .arrival-actions .edit-btn .fas {
+            color: #2196F3;
+        }
+
+        .arrival-actions .info-btn .fas {
+            color: #4CAF50;
+        }
+
+        .arrival-actions .delete-btn .fas {
+            color: #f44336;
+        }
+
+        .quick-actions-header {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: bold;
+            margin-top: 30px;
+        }
+
+        .quick-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .action-card {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            padding: 25px;
+            flex: 1 1 calc(33.333% - 40px/3);
+            min-width: 280px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .action-card .icon-bg {
+            background-color: #6a0dad;
+            border-radius: 50%;
+            padding: 12px;
+            margin-bottom: 15px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .action-card .fas {
+            font-size: 24px;
+            color: #FFFFFF;
+        }
+
+        .action-card h3 {
+            font-size: 1.1em;
+            color: #333;
+            margin: 0 0 8px 0;
+        }
+
+        .action-card p {
+            font-size: 0.9em;
+            color: #777;
+            margin: 0 0 15px 0;
+            line-height: 1.5;
+        }
+
+        .action-card .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s, color 0.2s;
+            font-size: 0.9em;
+            margin-top: auto;
+        }
+
+        .action-card .btn.action-btn-primary {
+            background-color: #6a0dad;
+            color: #ffffff;
+            border: none;
+        }
+
+        .action-card .btn.action-btn-primary:hover {
+            background-color: #5a099a;
+        }
+
+        .action-card .btn.action-btn-secondary {
+            background-color: #e9ecef;
+            color: #495057;
+            border: none;
+        }
+
+        .action-card .btn.action-btn-secondary:hover {
+            background-color: #dee2e6;
+        }
+
+        /* New Booking Panel Styles */
+        .booking-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .booking-header h1 {
+            margin: 0;
+            font-size: 1.8em;
+            color: #333;
+        }
+
+        .add-new-booking-btn {
+            background-color: #6a0dad;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+        }
+
+        .add-new-booking-btn:hover {
+            background-color: #5a099a;
+        }
+
+        .booking-tabs {
+            display: flex;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 20px;
+        }
+
+        .booking-tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            color: #777;
+            font-weight: 500;
+            transition: color 0.2s, border-bottom 0.2s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .booking-tab:hover {
+            color: #333;
+        }
+
+        .booking-tab.active {
+            color: #6a0dad;
+            border-bottom: 3px solid #6a0dad;
+        }
+
+        .booking-list table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .booking-list th,
+        .booking-list td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .booking-list th {
+            background-color: #f8f8f8;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .booking-list tr:last-child td {
+            border-bottom: none;
+        }
+
+        .booking-list .fas.fa-calendar-alt {
+            color: #6a0dad;
+            margin-right: 5px;
+        }
+
+        .booking-list .edit-icon,
+        .booking-list .more-icon {
+            cursor: pointer;
+            color: #777;
+            margin-left: 10px;
+        }
+
+        .booking-list .edit-icon:hover,
+        .booking-list .more-icon:hover {
+            color: #333;
+        }
+
+        /* Analytics Panel Styles */
+        #analytics-panel {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        #analytics-panel h1 {
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            color: #333;
+        }
+
+        .quick-stats-section,
+        .weekly-bookings-section,
+        .live-booking-status-section {
+            background-color: #fff;
+            padding: 25px; /* Adjust padding within sections */
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 40px; /* Increased margin-bottom for more separation */
+        }
+
+        .quick-stats-section h2,
+        .weekly-bookings-section h2,
+        .live-booking-status-section h2 {
+            margin-top: 0;
+            margin-bottom: 30px; /* Increased space below headings */
+            font-size: 1.5em; /* Slightly larger heading font */
+            color: #333;
+            font-weight: bold;
+        }
+
+        .stats-cards,
+        .status-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Keep min-width, focus on gap */
+            gap: 40px; /* Increased gap between cards for more separation */
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 25px; /* Increased padding for internal space */
+            border-radius: 8px;
+            background-color: #f8f8f8; /* Light background for stat cards */
+        }
+
+        .stat-card .icon-circle {
+            width: 60px; /* Increased size for icons */
+            height: 60px; /* Increased size for icons */
+            border-radius: 50%;
+            background-color: #6a0dad; /* Purple for icons */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 15px auto;
+        }
+
+        .stat-card .icon-circle .fas {
+            color: #fff;
+            font-size: 1.8em; /* Increased icon size */
+        }
+
+        .stat-card h3 {
+            margin: 0 0 8px 0;
+            font-size: 1.2em; /* Slightly larger heading */
+            color: #333;
+        }
+
+        .stat-card p {
+            margin: 0;
+            font-size: 1.3em; /* Slightly larger numbers */
+            font-weight: bold;
+            color: #6a0dad; /* Purple for numbers */
+        }
+
+        /* Weekly Bookings Chart */
+        .bar-chart-container {
+            height: 250px; /* Standard chart height */
+            display: flex;
+            align-items: flex-end;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px; /* Standard padding below bars */
+            justify-content: space-around;
+            padding-left: 15px; /* Standard padding to the left */
+            padding-right: 15px; /* Standard padding to the right */
+        }
+
+        .bar-chart {
+            display: flex;
+            height: 100%;
+            width: 100%;
+            justify-content: space-between; /* Ensures even distribution of bars */
+            align-items: flex-end;
+            padding: 0 10px; /* Standard internal padding to the chart bars */
+        }
+
+        .bar {
+            width: 18%; /* Adjusted bar width to fit better with standard gaps */
+            background-color: #6a0dad;
+            border-radius: 5px 5px 0 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            transition: height 0.3s ease;
+            position: relative;
+        }
+
+        .bar .label {
+            position: absolute;
+            bottom: -25px; /* Standard label position */
+            font-size: 0.9em; /* Standard label font */
+            color: #777;
+        }
+
+        .monthly-revenue-section {
+            margin-top: 40px; /* Increased margin-top for more separation */
+            padding: 30px; /* Adjusted padding within section */
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            background-color: #fff;
+            margin-bottom: 40px; /* Consistent margin-bottom for consistency */
+        }
+
+        .monthly-revenue-section h2 {
+            margin-top: 0;
+            margin-bottom: 30px; /* Increased space below heading */
+            font-size: 1.5em; /* Slightly larger heading font */
+            color: #333;
+            font-weight: bold;
+        }
+
+        .revenue-card {
+            text-align: center;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #f8f8f8;
+        }
+
+        .revenue-card h3 {
+            margin: 0 0 8px 0;
+            font-size: 1.2em;
+            color: #333;
+        }
+
+        .revenue-card p {
+            margin: 0;
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #6a0dad;
+        }
+
+        .report-generation-section {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .generate-report-btn {
+            background-color: #6a0dad;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+        }
+
+        .modal-form-group .input-with-icon {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .modal-form-group input[type="text"],
+        .modal-form-group input[type="email"],
+        .modal-form-group input[type="number"],
+        .modal-form-group input[type="date"] {
+            width: 100%;
+            padding: 12px 16px 12px 40px; /* <-- This is good */
+            /* ... */
+        }
+        .modal-form-group .material-icons {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #bbb;
+            font-size: 20px;
+        }
+        .input-with-icon input {
+            padding-left: 40px !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <span>Villa Ester Resort</span>
+            <button><i class="fas fa-plus"></i></button>
+        </div>
+        <nav class="sidebar-menu">
+            <ul>
+                <li><a href="#" class="active" data-panel="dashboard-panel"><i class="fas fa-th-large"></i> Dashboard</a></li>
+                <li><a href="#" id="bookings-sidebar-link" data-panel="bookings-panel"><i class="fas fa-calendar-alt"></i> Bookings</a></li>
+                <li><a href="#" data-panel="customers-panel"><i class="fas fa-users"></i> Customers</a></li>
+                <li><a href="#" data-panel="analytics-panel"><i class="fas fa-chart-bar"></i> Analytics</a></li>
+            </ul>
+        </nav>
+        <div class="settings-section">
+            <p>SETTINGS</p>
+            <nav class="sidebar-menu">
+                <ul>
+                    <li><a href="#"><i class="fas fa-user-circle"></i> Account</a></li>
+                    <li><a href="#"><i class="fas fa-cogs"></i> Preferences</a></li>
+                </ul>
+            </nav>
+        </div>
+        <div class="admin-user-section">
+            <img src="https://via.placeholder.com/40" alt="Admin User" class="admin-user-avatar">
+            <div>
+                <p class="admin-user-name">Admin User</p>
+                <p class="admin-user-role">Resort Manager</p>
+            </div>
+        </div>
+    </div>
+    <div class="main-content" id="dashboard-panel">
+        <h1>Dashboard Overview</h1>
+        <div class="dashboard-overview">
+            <div class="card">
+                <div class="icon"><i class="fas fa-home"></i></div>
+                <h3>Total Occupancy</h3>
+                <p>78% of rooms currently occupied</p>
+                <button>View Details</button>
+            </div>
+            <div class="card">
+                <div class="icon"><i class="fas fa-dollar-sign"></i></div>
+                <h3>Today's Revenue</h3>
+                <p>$4,850 from 12 bookings</p>
+                <button>View Report</button>
+            </div>
+            <div class="card">
+                <div class="icon"><i class="fas fa-clipboard-list"></i></div>
+                <h3>Pending Bookings</h3>
+                <p>8 bookings awaiting confirmation</p>
+                <button>Review Now</button>
+            </div>
+            <div class="card">
+                <div class="icon"><i class="fas fa-chart-line"></i></div>
+                <h3>AI Insights</h3>
+                <p>Demand forecast suggests 15% price increase for weekend</p>
+                <button>Apply Changes</button>
+            </div>
+        </div>
+        <h2>Room Occupancy Status</h2>
+        <div class="room-occupancy-status">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Room Number</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>101</td>
+                        <td class="occupied">Occupied</td>
+                    </tr>
+                    <tr>
+                        <td>102</td>
+                        <td class="vacant">Vacant</td>
+                    </tr>
+                    <tr>
+                        <td>103</td>
+                        <td class="occupied">Occupied</td>
+                    </tr>
+                    <tr>
+                        <td>104</td>
+                        <td class="vacant">Vacant</td>
+                    </tr>
+                    <tr>
+                        <td>201</td>
+                        <td class="occupied">Occupied</td>
+                    </tr>
+                    <tr>
+                        <td>202</td>
+                        <td class="vacant">Vacant</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- New Bookings Panel -->
+    <div class="main-content" style="display: none;" id="bookings-panel">
+        <div class="booking-header">
+            <h1>Booking Management</h1>
+            <button class="add-new-booking-btn">Add New Booking</button>
+        </div>
+        <div class="booking-tabs">
+            <span class="booking-tab active" data-status="all">All Bookings</span>
+            <span class="booking-tab" data-status="pending">Pending</span>
+            <span class="booking-tab" data-status="confirmed">Confirmed</span>
+            <span class="booking-tab" data-status="checked-in">Checked In</span>
+            <span class="booking-tab" data-status="completed">Completed</span>
+        </div>
+        <div class="booking-list">
+            <table>
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Booking ID</th>
+                        <th>Guest</th>
+                        <th>Room Type</th>
+                        <th>Dates</th>
+                        <th>Price</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="bookings-table-body">
+                    <!-- Booking rows will be dynamically inserted here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- New Analytics Panel -->
+    <div class="main-content" style="display: none;" id="analytics-panel">
+        <h1>Analytics Dashboard</h1>
+        <div class="quick-stats-section">
+            <h2>Quick Stats</h2>
+            <div class="stats-cards">
+                <div class="stat-card">
+                    <div class="icon-circle"><i class="fas fa-calendar-check"></i></div>
+                    <h3>Today's Bookings</h3>
+                    <p>12</p>
+                </div>
+                <div class="stat-card">
+                    <div class="icon-circle"><i class="fas fa-dollar-sign"></i></div>
+                    <h3>Today's Revenue</h3>
+                    <p>$720</p>
+                </div>
+                <div class="stat-card">
+                    <div class="icon-circle"><i class="fas fa-check-circle"></i></div>
+                    <h3>Completed</h3>
+                    <p>9</p>
+                </div>
+                <div class="stat-card">
+                    <div class="icon-circle"><i class="fas fa-times-circle"></i></div>
+                    <h3>Cancelled</h3>
+                    <p>3</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="weekly-bookings-section">
+            <h2>Weekly Bookings</h2>
+            <div class="bar-chart-container">
+                <div class="bar-chart">
+                    <div class="bar" style="height: 60%;"><span class="label">Mon</span></div>
+                    <div class="bar" style="height: 80%;"><span class="label">Tue</span></div>
+                    <div class="bar" style="height: 100%;"><span class="label">Wed</span></div>
+                    <div class="bar" style="height: 50%;"><span class="label">Thu</span></div>
+                    <div class="bar" style="height: 70%;"><span class="label">Fri</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="live-booking-status-section">
+            <h2>Live Booking Status</h2>
+            <div class="status-cards">
+                <div class="stat-card">
+                    <div class="icon-circle"><i class="fas fa-clock"></i></div>
+                    <h3>Upcoming</h3>
+                    <p>5</p>
+                </div>
+                <div class="stat-card">
+                    <div class="icon-circle"><i class="fas fa-spinner"></i></div>
+                    <h3>In Progress</h3>
+                    <p>2</p>
+                </div>
+                <div class="stat-card">
+                    <div class="icon-circle"><i class="fas fa-check-circle"></i></div>
+                    <h3>Completed</h3>
+                    <p>9</p>
+                </div>
+                <div class="stat-card">
+                    <div class="icon-circle"><i class="fas fa-exclamation-circle"></i></div>
+                    <h3>No-show</h3>
+                    <p>1</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="monthly-revenue-section">
+            <h2>Monthly Revenue</h2>
+            <div class="revenue-card">
+                <h3>Total Revenue This Month</h3>
+                <p>$15,500</p>
+            </div>
+        </div>
+
+        <div class="report-generation-section">
+            <button class="generate-report-btn" id="generate-monthly-audit-btn">Generate Monthly Audit Report</button>
+        </div>
+    </div>
+
+    <div class="main-content" style="display: none;" id="customers-panel">
+        <div class="booking-header">
+            <h1>Customers</h1>
+            <button class="add-new-customer-btn">Add New Customer</button>
+        </div>
+        <div class="search-bar">
+            <div class="search-input-wrapper">
+                <input type="text" id="customer-search" placeholder="Search by name, email, or phone">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+        </div>
+        <div class="booking-list">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Total Bookings</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="customers-table-body">
+                    <!-- Customer rows will be dynamically inserted here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Add a script for Font Awesome icons
+        const fontAwesomeScript = document.createElement('script');
+        fontAwesomeScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js';
+        fontAwesomeScript.crossOrigin = 'anonymous';
+        document.head.appendChild(fontAwesomeScript);
+
+        // --- ALERT UTILITY ---
+        function showAdminAlert(msg, type = 'success') {
+            let alert = document.getElementById('admin-alert');
+            if (!alert) {
+                alert = document.createElement('div');
+                alert.id = 'admin-alert';
+                alert.style.position = 'fixed';
+                alert.style.top = '24px';
+                alert.style.right = '24px';
+                alert.style.zIndex = '3000';
+                alert.style.padding = '14px 24px';
+                alert.style.borderRadius = '8px';
+                alert.style.fontWeight = '600';
+                alert.style.fontSize = '1.1em';
+                alert.style.boxShadow = '0 2px 12px rgba(80,80,120,0.10)';
+                document.body.appendChild(alert);
+            }
+            alert.textContent = msg;
+            alert.style.background = type === 'success' ? '#6a0dad' : '#e74c3c';
+            alert.style.color = '#fff';
+            alert.style.display = 'block';
+            setTimeout(() => { alert.style.display = 'none'; }, 2200);
+        }
+
+        // --- MODAL UTILITY ---
+        function showAdminModal(title, content, options = {}) {
+            let modal = document.getElementById('admin-modal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'admin-modal';
+                modal.style.position = 'fixed';
+                modal.style.top = '0';
+                modal.style.left = '0';
+                modal.style.width = '100vw';
+                modal.style.height = '100vh';
+                modal.style.background = 'rgba(30,30,50,0.18)';
+                modal.style.zIndex = '4000';
+                modal.style.display = 'flex';
+                modal.style.alignItems = 'center';
+                modal.style.justifyContent = 'center';
+                modal.innerHTML = `<div style='background:#fff;max-width:440px;width:92%;border-radius:14px;box-shadow:0 8px 32px rgba(80,80,120,0.18);padding:32px 24px 18px 24px;position:relative;'>
+                    <span id='close-admin-modal' style='position:absolute;top:12px;right:18px;font-size:1.7em;cursor:pointer;color:#888;'>&times;</span>
+                    <h2 style='margin-top:0;font-size:1.3em;color:#6a0dad;'>${title}</h2>
+                    <div style='margin-top:12px;' id='admin-modal-content'>${content}</div>
+                </div>`;
+                document.body.appendChild(modal);
+            } else {
+                modal.querySelector('h2').textContent = title;
+                modal.querySelector('#admin-modal-content').innerHTML = content;
+                modal.style.display = 'flex';
+            }
+            document.getElementById('close-admin-modal').onclick = function() {
+                modal.style.display = 'none';
+            };
+            if (options.onShow) options.onShow(modal);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- SIDEBAR NAVIGATION ---
+            const sidebarLinks = document.querySelectorAll('.sidebar-menu ul li a');
+            const mainContentPanels = document.querySelectorAll('.main-content');
+            const bookingsTableBody = document.getElementById('bookings-table-body');
+            const bookingTabs = document.querySelectorAll('.booking-tab');
+
+            const allBookingsData = [
+                { id: 'BK-2023-001', guest: 'John Smith', roomType: 'Deluxe Room', dates: 'Nov 15-18', price: '$750', status: 'Confirmed' },
+                { id: 'BK-2023-002', guest: 'Maria Garcia', roomType: 'Suite', dates: 'Nov 16-20', price: '$1,200', status: 'Pending' },
+                { id: 'BK-2023-003', guest: 'Robert Chen', roomType: 'Family Room', dates: 'Nov 18-22', price: '$980', status: 'Confirmed' },
+                { id: 'BK-2023-004', guest: 'Sarah Johnson', roomType: 'Standard Room', dates: 'Nov 20-22', price: '$450', status: 'Pending' },
+                { id: 'BK-2023-005', guest: 'David Wilson', roomType: 'Villa', dates: 'Nov 22-28', price: '$2,400', status: 'Confirmed' }
+            ];
+
+            function renderBookings(statusFilter) {
+                bookingsTableBody.innerHTML = '';
+                const filteredBookings = statusFilter === 'all' 
+                    ? allBookingsData 
+                    : allBookingsData.filter(booking => booking.status.toLowerCase() === statusFilter.toLowerCase());
+
+                filteredBookings.forEach(booking => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><i class="fas fa-calendar-alt"></i></td>
+                        <td>${booking.id}</td>
+                        <td>${booking.guest}</td>
+                        <td>${booking.roomType}</td>
+                        <td>${booking.dates}</td>
+                        <td>${booking.price}</td>
+                        <td>${booking.status}</td>
+                        <td>
+                            <i class="fas fa-pencil-alt edit-icon"></i>
+                            <i class="fas fa-ellipsis-v more-icon"></i>
+                        </td>
+                    `;
+                    bookingsTableBody.appendChild(row);
+                });
+                addBookingRowListeners();
+            }
+
+            function showPanel(panelId) {
+                mainContentPanels.forEach(panel => {
+                    panel.style.display = 'none';
+                });
+                const panelToShow = document.getElementById(panelId);
+                if (panelToShow) {
+                    panelToShow.style.display = 'block';
+                }
+                sidebarLinks.forEach(link => link.classList.remove('active'));
+                const activeLink = document.querySelector(`[data-panel="${panelId}"]`);
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                }
+            }
+
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const panelId = this.getAttribute('data-panel');
+                    showPanel(panelId);
+                    if (panelId === 'bookings-panel') {
+                        renderBookings('all');
+                        bookingTabs.forEach(tab => tab.classList.remove('active'));
+                        document.querySelector('.booking-tab[data-status="all"]').classList.add('active');
+                    }
+                });
+            });
+
+            bookingTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    bookingTabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    renderBookings(this.getAttribute('data-status'));
+                });
+            });
+
+            // --- DASHBOARD CARD BUTTONS ---
+            const dashboardCards = document.querySelectorAll('.dashboard-overview .card');
+            if (dashboardCards.length) {
+                // Total Occupancy
+                dashboardCards[0].querySelector('button').onclick = function() {
+                    showAdminModal('Total Occupancy Details', `
+                        <ul style='padding-left:18px;'>
+                            <li>Occupied Rooms: 39</li>
+                            <li>Vacant Rooms: 11</li>
+                            <li>Occupancy Rate: 78%</li>
+                            <li>Most Popular Room: Ocean View Suite</li>
+                        </ul>
+                    `);
+                };
+                // Today's Revenue
+                dashboardCards[1].querySelector('button').onclick = function() {
+                    showAdminModal('Today\'s Revenue Report', `
+                        <ul style='padding-left:18px;'>
+                            <li>Total Revenue: $4,850</li>
+                            <li>Bookings: 12</li>
+                            <li>Highest Sale: Villa - $1,200</li>
+                            <li>Most Booked: Standard Cottage</li>
+                        </ul>
+                    `);
+                };
+                // Pending Bookings
+                dashboardCards[2].querySelector('button').onclick = function() {
+                    showPanel('bookings-panel');
+                    renderBookings('pending');
+                    document.querySelectorAll('.booking-tab').forEach(tab => tab.classList.remove('active'));
+                    document.querySelector('.booking-tab[data-status="pending"]').classList.add('active');
+                };
+                // AI Insights
+                dashboardCards[3].querySelector('button').onclick = function() {
+                    showAdminModal('AI Insights', `
+                        <p>Demand forecast suggests a 15% price increase for the weekend.</p>
+                        <button id='apply-ai-changes-btn' style='background:#6a0dad;color:#fff;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;margin-top:18px;'>Apply Changes</button>
+                    `, {
+                        onShow: (modal) => {
+                            modal.querySelector('#apply-ai-changes-btn').onclick = function() {
+                                showAdminAlert('AI price changes applied!', 'success');
+                                modal.style.display = 'none';
+                            };
+                        }
+                    });
+                };
+            }
+
+            // --- BOOKINGS PANEL: Edit, Delete, View ---
+            function addBookingRowListeners() {
+                bookingsTableBody.querySelectorAll('.edit-icon').forEach(icon => {
+                    icon.onclick = function() {
+                        const row = this.closest('tr');
+                        const id = row.children[1].textContent;
+                        showAdminModal('Edit Booking', `<form id='edit-booking-form'>
+                            <label>Booking ID: <b>${id}</b></label><br><br>
+                            <label>Guest Name</label><br><input type='text' id='edit-guest' value='${row.children[2].textContent}' required style='width:100%;margin-bottom:10px;'><br>
+                            <label>Room Type</label><br><input type='text' id='edit-room' value='${row.children[3].textContent}' required style='width:100%;margin-bottom:10px;'><br>
+                            <label>Dates</label><br><input type='text' id='edit-dates' value='${row.children[4].textContent}' required style='width:100%;margin-bottom:10px;'><br>
+                            <label>Price</label><br><input type='text' id='edit-price' value='${row.children[5].textContent}' required style='width:100%;margin-bottom:10px;'><br>
+                            <label>Status</label><br><input type='text' id='edit-status' value='${row.children[6].textContent}' required style='width:100%;margin-bottom:10px;'><br>
+                            <button type='submit' style='background:#6a0dad;color:#fff;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;'>Save</button>
+                        </form>`);
+                        document.getElementById('edit-booking-form').onsubmit = function(e) {
+                            e.preventDefault();
+                            row.children[2].textContent = document.getElementById('edit-guest').value;
+                            row.children[3].textContent = document.getElementById('edit-room').value;
+                            row.children[4].textContent = document.getElementById('edit-dates').value;
+                            row.children[5].textContent = document.getElementById('edit-price').value;
+                            row.children[6].textContent = document.getElementById('edit-status').value;
+                            showAdminAlert('Booking updated!', 'success');
+                            document.getElementById('admin-modal').style.display = 'none';
+                        };
+                    };
+                });
+                bookingsTableBody.querySelectorAll('.more-icon').forEach(icon => {
+                    icon.onclick = function(e) {
+                        const row = this.closest('tr');
+                        const id = row.children[1].textContent;
+                        showAdminModal('Booking Options', `
+                            <button id='view-booking-details-btn' style='background:#6a0dad;color:#fff;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;margin-bottom:10px;'>View Details</button><br>
+                            <button id='delete-booking-btn' style='background:#e74c3c;color:#fff;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;'>Delete</button>
+                        `, {
+                            onShow: (modal) => {
+                                modal.querySelector('#view-booking-details-btn').onclick = function() {
+                                    showAdminModal('Booking Details', `
+                                        <ul style='padding-left:18px;'>
+                                            <li><b>ID:</b> ${id}</li>
+                                            <li><b>Guest:</b> ${row.children[2].textContent}</li>
+                                            <li><b>Room Type:</b> ${row.children[3].textContent}</li>
+                                            <li><b>Dates:</b> ${row.children[4].textContent}</li>
+                                            <li><b>Price:</b> ${row.children[5].textContent}</li>
+                                            <li><b>Status:</b> ${row.children[6].textContent}</li>
+                                        </ul>
+                                    `);
+                                };
+                                modal.querySelector('#delete-booking-btn').onclick = function() {
+                                    row.remove();
+                                    showAdminAlert('Booking deleted!', 'success');
+                                    modal.style.display = 'none';
+                                };
+                            }
+                        });
+                    };
+                });
+            }
+            // Patch renderBookings to add listeners
+            const origRenderBookings = renderBookings;
+            renderBookings = function(statusFilter) {
+                origRenderBookings(statusFilter);
+                addBookingRowListeners();
+            };
+            // Add listeners on page load
+            addBookingRowListeners();
+
+            // --- ADD NEW BOOKING ---
+            const addNewBookingBtn = document.querySelector('.add-new-booking-btn');
+            if (addNewBookingBtn) {
+                addNewBookingBtn.onclick = function() {
+                    showAdminModal('Add New Booking', `<form id='add-booking-form'>
+                        <label>Guest Name</label><br><input type='text' id='add-guest' required style='width:100%;margin-bottom:10px;'><br>
+                        <label>Room Type</label><br><input type='text' id='add-room' required style='width:100%;margin-bottom:10px;'><br>
+                        <label>Dates</label><br><input type='text' id='add-dates' required style='width:100%;margin-bottom:10px;'><br>
+                        <label>Price</label><br><input type='text' id='add-price' required style='width:100%;margin-bottom:10px;'><br>
+                        <label>Status</label><br><input type='text' id='add-status' required style='width:100%;margin-bottom:10px;'><br>
+                        <button type='submit' style='background:#6a0dad;color:#fff;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;'>Add</button>
+                    </form>`);
+                    document.getElementById('add-booking-form').onsubmit = function(e) {
+                        e.preventDefault();
+                        const guest = document.getElementById('add-guest').value;
+                        const room = document.getElementById('add-room').value;
+                        const dates = document.getElementById('add-dates').value;
+                        const price = document.getElementById('add-price').value;
+                        const status = document.getElementById('add-status').value;
+                        const newRow = document.createElement('tr');
+                        newRow.innerHTML = `
+                            <td><i class="fas fa-calendar-alt"></i></td>
+                            <td>BK-NEW-${Math.floor(Math.random()*10000)}</td>
+                            <td>${guest}</td>
+                            <td>${room}</td>
+                            <td>${dates}</td>
+                            <td>${price}</td>
+                            <td>${status}</td>
+                            <td>
+                                <i class="fas fa-pencil-alt edit-icon"></i>
+                                <i class="fas fa-ellipsis-v more-icon"></i>
+                            </td>
+                        `;
+                        bookingsTableBody.appendChild(newRow);
+                        showAdminAlert('Booking added!', 'success');
+                        document.getElementById('admin-modal').style.display = 'none';
+                        addBookingRowListeners();
+                    };
+                };
+            }
+
+            // --- ANALYTICS PANEL: Tooltips/Modals ---
+            document.querySelectorAll('.stats-cards .stat-card, .status-cards .stat-card').forEach(card => {
+                card.style.cursor = 'pointer';
+                card.title = 'Click for more info';
+                card.onclick = function() {
+                    showAdminModal(card.querySelector('h3').textContent, `<p>More details and analytics will be available here in the future.</p>`);
+                };
+            });
+
+            // --- MONTHLY AUDIT REPORT: Modal Preview ---
+            const generateMonthlyAuditBtn = document.getElementById('generate-monthly-audit-btn');
+            if (generateMonthlyAuditBtn) {
+                generateMonthlyAuditBtn.onclick = function() {
+                    const reportContent = `
+                        <h1>Monthly Audit Report - ${new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}</h1>
+                        <h2>Monthly Revenue: $15,500</h2>
+                        <h3>Bookings Overview:</h3>
+                        <ul>
+                            <li>Total Bookings: 5</li>
+                            <li>Confirmed Bookings: 3</li>
+                            <li>Pending Bookings: 2</li>
+                        </ul>
+                        <p>This is a sample audit report. More detailed information would go here.</p>
+                        <button id='print-audit-report-btn' style='background:#6a0dad;color:#fff;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;margin-top:18px;'>Print Report</button>
+                    `;
+                    showAdminModal('Monthly Audit Report Preview', reportContent, {
+                        onShow: (modal) => {
+                            modal.querySelector('#print-audit-report-btn').onclick = function() {
+                                window.print();
+                                showAdminAlert('Report sent to printer!', 'success');
+                                modal.style.display = 'none';
+                            };
+                        }
+                    });
+                };
+            }
+
+            // --- CUSTOMERS PANEL ---
+            const customersPanel = document.getElementById('customers-panel');
+            const customersTableBody = document.getElementById('customers-table-body');
+            const addNewCustomerBtn = document.querySelector('.add-new-customer-btn');
+            const customerSearch = document.getElementById('customer-search');
+            const customersSidebarLink = document.querySelector('.sidebar-menu ul li a[data-panel="customers-panel"]');
+            let customersData = [
+                { name: 'Alice Brown', email: 'alice@example.com', phone: '09171234567', bookings: 3 },
+                { name: 'Bob Smith', email: 'bob@example.com', phone: '09181234567', bookings: 1 },
+                { name: 'Carla Reyes', email: 'carla@example.com', phone: '09191234567', bookings: 5 }
+            ];
+            function renderCustomers(filter = '') {
+                customersTableBody.innerHTML = '';
+                let filtered = customersData.filter(c =>
+                    c.name.toLowerCase().includes(filter.toLowerCase()) ||
+                    c.email.toLowerCase().includes(filter.toLowerCase()) ||
+                    c.phone.includes(filter)
+                );
+                if (filtered.length === 0) {
+                    customersTableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#888;">No customers found.</td></tr>';
+                } else {
+                    filtered.forEach((c, idx) => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${c.name}</td>
+                            <td>${c.email}</td>
+                            <td>${c.phone}</td>
+                            <td>${c.bookings}</td>
+                            <td>
+                                <i class="fas fa-eye view-customer" title="View" data-idx="${idx}" style="cursor:pointer;color:#6a0dad;margin-right:8px;"></i>
+                                <i class="fas fa-pencil-alt edit-customer" title="Edit" data-idx="${idx}" style="cursor:pointer;color:#007bff;margin-right:8px;"></i>
+                                <i class="fas fa-trash delete-customer" title="Delete" data-idx="${idx}" style="cursor:pointer;color:#e74c3c;"></i>
+                            </td>
+                        `;
+                        customersTableBody.appendChild(row);
+                    });
+                }
+                addCustomerRowListeners();
+            }
+            function addCustomerRowListeners() {
+                customersTableBody.querySelectorAll('.view-customer').forEach(icon => {
+                    icon.onclick = function() {
+                        const idx = +this.getAttribute('data-idx');
+                        const c = customersData[idx];
+                        showAdminModal('Customer Details', `
+                            <ul style='padding-left:18px;'>
+                                <li><b>Name:</b> ${c.name}</li>
+                                <li><b>Email:</b> ${c.email}</li>
+                                <li><b>Phone:</b> ${c.phone}</li>
+                                <li><b>Total Bookings:</b> ${c.bookings}</li>
+                            </ul>
+                        `);
+                    };
+                });
+                customersTableBody.querySelectorAll('.edit-customer').forEach(icon => {
+                    icon.onclick = function() {
+                        const idx = +this.getAttribute('data-idx');
+                        const c = customersData[idx];
+                        showAdminModal('Edit Customer', `<form id='edit-customer-form'>
+                            <label>Name</label><br><input type='text' id='edit-cust-name' value='${c.name}' required style='width:100%;margin-bottom:10px;'><br>
+                            <label>Email</label><br><input type='email' id='edit-cust-email' value='${c.email}' required style='width:100%;margin-bottom:10px;'><br>
+                            <label>Phone</label><br><input type='text' id='edit-cust-phone' value='${c.phone}' required style='width:100%;margin-bottom:10px;'><br>
+                            <label>Total Bookings</label><br><input type='number' id='edit-cust-bookings' value='${c.bookings}' min='0' required style='width:100%;margin-bottom:10px;'><br>
+                            <button type='submit' style='background:#6a0dad;color:#fff;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;'>Save</button>
+                        </form>`);
+                        document.getElementById('edit-customer-form').onsubmit = function(e) {
+                            e.preventDefault();
+                            c.name = document.getElementById('edit-cust-name').value;
+                            c.email = document.getElementById('edit-cust-email').value;
+                            c.phone = document.getElementById('edit-cust-phone').value;
+                            c.bookings = +document.getElementById('edit-cust-bookings').value;
+                            renderCustomers(customerSearch.value);
+                            showAdminAlert('Customer updated!', 'success');
+                            document.getElementById('admin-modal').style.display = 'none';
+                        };
+                    };
+                });
+                customersTableBody.querySelectorAll('.delete-customer').forEach(icon => {
+                    icon.onclick = function() {
+                        const idx = +this.getAttribute('data-idx');
+                        showAdminModal('Delete Customer', `<p>Are you sure you want to delete this customer?</p>
+                            <button id='confirm-delete-customer' style='background:#e74c3c;color:#fff;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;'>Delete</button>
+                        `, {
+                            onShow: (modal) => {
+                                modal.querySelector('#confirm-delete-customer').onclick = function() {
+                                    customersData.splice(idx, 1);
+                                    renderCustomers(customerSearch.value);
+                                    showAdminAlert('Customer deleted!', 'success');
+                                    modal.style.display = 'none';
+                                };
+                            }
+                        });
+                    };
+                });
+            }
+            if (addNewCustomerBtn) {
+                addNewCustomerBtn.onclick = function() {
+                    showAdminModal('Add New Customer', `<form id='add-customer-form'>
+                        <label>Name</label><br><input type='text' id='add-cust-name' required style='width:100%;margin-bottom:10px;'><br>
+                        <label>Email</label><br><input type='email' id='add-cust-email' required style='width:100%;margin-bottom:10px;'><br>
+                        <label>Phone</label><br><input type='text' id='add-cust-phone' required style='width:100%;margin-bottom:10px;'><br>
+                        <label>Total Bookings</label><br><input type='number' id='add-cust-bookings' value='0' min='0' required style='width:100%;margin-bottom:10px;'><br>
+                        <button type='submit' style='background:#6a0dad;color:#fff;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;'>Add</button>
+                    </form>`);
+                    document.getElementById('add-customer-form').onsubmit = function(e) {
+                        e.preventDefault();
+                        customersData.unshift({
+                            name: document.getElementById('add-cust-name').value,
+                            email: document.getElementById('add-cust-email').value,
+                            phone: document.getElementById('add-cust-phone').value,
+                            bookings: +document.getElementById('add-cust-bookings').value
+                        });
+                        renderCustomers(customerSearch.value);
+                        showAdminAlert('Customer added!', 'success');
+                        document.getElementById('admin-modal').style.display = 'none';
+                    };
+                };
+            }
+            if (customerSearch) {
+                customerSearch.addEventListener('input', function() {
+                    renderCustomers(this.value);
+                });
+            }
+            // Sidebar link for customers
+            if (customersSidebarLink) {
+                customersSidebarLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showPanel('customers-panel');
+                    renderCustomers(customerSearch.value);
+                });
+            }
+            // Initial render
+            renderCustomers();
+
+            // Show the dashboard panel by default on page load
+            showPanel('dashboard-panel');
+        });
+    </script>
+</body>
+</html> 

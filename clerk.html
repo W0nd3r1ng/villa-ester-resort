@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clerk Panel | Villa Ester Resort</title>
+    <link rel="stylesheet" href="clerk-style.css">
+    <script src="clerk.js" defer></script>
+    <!-- Add Material Icons or other icon library if needed for sidebar icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+    <!-- Main Dashboard View -->
+    <div id="main-dashboard-view">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>Villa Ester Resort</h2>
+                <!--<span class="material-icons">menu</span>-->
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="#" data-panel="dashboard-overview-panel" class="active"><i class="material-icons">dashboard</i> Dashboard</a></li>
+                    <li><a href="#" data-panel="check-in-out-panel"><i class="material-icons">event</i> Today's Arrivals</a></li>
+                    <li><a href="#" data-panel="quick-booking-panel"><i class="material-icons">add_circle</i> Quick Booking</a></li>
+                    <li><a href="#" data-panel="guest-management-panel"><i class="material-icons">people</i> Guest Management</a></li>
+                </ul>
+                <div class="sidebar-section-title">
+                     <h3>TOOLS</h3>
+                     <ul>
+                         <li><a href="#"><i class="material-icons">assessment</i> Reports</a></li>
+                         <li><a href="#"><i class="material-icons">settings</i> Settings</a></li>
+                     </ul>
+                </div>
+            </nav>
+            <div class="sidebar-footer">
+                 <div class="profile-info">
+                    <!-- <img src="https://via.placeholder.com/30" alt="Profile Pic" class="profile-pic"> -->
+                    <div>
+                        <p class="profile-name">Front Desk Clerk</p>
+                        <p class="profile-status">On duty</p>
+                    </div>
+                 </div>
+            </div>
+        </div>
+        <div class="main-content">
+            <!-- Check-in & Check-out Management Panel -->
+            <div id="check-in-out-panel" class="dashboard-panel" style="display: none;">
+                <div class="content-header">
+                    <h1>Check-in & Check-out Management</h1>
+                </div>
+                
+                <h3 class="search-label">Search Arrivals</h3>
+                <div class="search-bar">
+                    <div class="search-input-wrapper">
+                        <input type="text" placeholder="Search by name, room, or reservation">
+                        <i class="material-icons search-icon">search</i>
+                    </div>
+                    <button class="btn filter-btn">Filter</button>
+                </div>
+
+                <div class="guest-list-header">Today's Arrivals (8)</div>
+                <div id="arrival-list-container"></div>
+
+                <h2 class="quick-actions-header">Quick Actions</h2>
+                <div class="quick-actions">
+                    <div class="action-card">
+                        <div class="icon-bg"><i class="material-icons">person_add</i></div>
+                        <h3>Walk-in Check-in</h3>
+                        <p>Book and check in a guest without a reservation.</p>
+                        <button class="btn action-btn-primary">New Walk-in</button>
+                    </div>
+                    <div class="action-card">
+                        <div class="icon-bg"><i class="material-icons">print</i></div>
+                        <h3>Print Reports</h3>
+                        <p>Generate and print daily reports.</p>
+                        <button class="btn action-btn-primary">Print</button>
+                    </div>
+                </div>
+
+                <h2 class="quick-actions-header">Other Actions</h2>
+                <div class="quick-actions">
+                     <div class="action-card">
+                        <div class="icon-bg"><i class="material-icons">edit</i></div>
+                        <h3>Modify Stay</h3>
+                        <p>Change dates, room, or guest details for current guests.</p>
+                        <button class="btn action-btn-secondary">Modify</button>
+                    </div>
+                     <div class="action-card">
+                        <div class="icon-bg"><i class="material-icons">star</i></div>
+                        <h3>Offer Upgrade</h3>
+                        <p>Suggest available room upgrades for better occupancy.</p>
+                        <button class="btn action-btn-secondary">Suggest Upgrade</button>
+                    </div>
+                </div>
+
+                <!-- Add Booking Modal (still used for adding) -->
+                <div id="add-booking-modal" class="modal">
+                    <div class="modal-content">
+                        <span class="close-modal" id="close-modal">&times;</span>
+                        <h3>Add New Booking</h3>
+                        <form id="add-booking-form">
+                            <label for="guest-name">Guest Name</label>
+                            <input type="text" id="guest-name" required>
+                            <label for="room-number">Room Number</label>
+                            <input type="number" id="room-number" required>
+                            <label for="booking-type">Booking Type</label>
+                            <select id="booking-type" required>
+                                <option value="">Select booking type</option>
+                                <option value="daytour">Day Tour (8am–6pm)</option>
+                                <option value="overnight">Overnight Stay</option>
+                            </select>
+                            <div id="daytour-fields">
+                                <label for="schedule-date">Schedule Date</label>
+                                <input type="date" id="schedule-date">
+                            </div>
+                            <div id="overnight-fields" style="display:none;">
+                                <label for="checkin-date">Check-in Date</label>
+                                <input type="date" id="checkin-date">
+                                <label for="checkout-date">Check-out Date</label>
+                                <input type="date" id="checkout-date">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save Booking</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Overview Panel (newly created) -->
+            <div id="dashboard-overview-panel" class="dashboard-panel">
+                <div class="content-header">
+                    <h1>Dashboard Overview</h1>
+                </div>
+                
+                <div class="dashboard-overview">
+                    <div class="card">
+                        <div class="icon"><i class="material-icons">home</i></div>
+                        <h3>Total Occupancy</h3>
+                        <p>78% of rooms currently occupied</p>
+                        <button class="btn action-btn-primary">View Details</button>
+                    </div>
+                    <div class="card">
+                        <div class="icon"><i class="material-icons">attach_money</i></div>
+                        <h3>Today's Revenue</h3>
+                        <p>$4,850 from 12 bookings</p>
+                        <button class="btn action-btn-primary">View Report</button>
+                    </div>
+                    <div class="action-card">
+                        <div class="icon-bg"><i class="material-icons">person_add</i></div>
+                        <h3>Walk-in Check-in</h3>
+                        <p>Book and check in a guest without a reservation.</p>
+                        <button class="btn action-btn-primary" id="dashboard-walkin-btn">New Walk-in</button>
+                    </div>
+                </div>
+
+                <h2>Room Occupancy Status</h2>
+                <div class="room-occupancy-status">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Room Number</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>101</td>
+                                <td class="occupied">Occupied</td>
+                            </tr>
+                            <tr>
+                                <td>102</td>
+                                <td class="vacant">Vacant</td>
+                            </tr>
+                            <tr>
+                                <td>103</td>
+                                <td class="occupied">Occupied</td>
+                            </tr>
+                            <tr>
+                                <td>104</td>
+                                <td class="vacant">Vacant</td>
+                            </tr>
+                            <tr>
+                                <td>201</td>
+                                <td class="occupied">Occupied</td>
+                            </tr>
+                            <tr>
+                                <td>202</td>
+                                <td class="vacant">Vacant</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Quick Booking Panel (hidden initially) -->
+            <div id="quick-booking-panel" class="dashboard-panel">
+                <div class="content-header">
+                    <h1>Quick Booking</h1>
+                </div>
+                <div class="quick-booking-tabs">
+                    <span class="tab active">New Booking</span>
+                    <span class="tab">Guest Details</span>
+                </div>
+                <form class="quick-booking-form">
+                    <div class="quick-booking-form-row">
+                        <div class="quick-booking-form-group">
+                            <label for="qb-full-name">Full Name</label>
+                            <div class="input-with-icon">
+                                <input type="text" id="qb-full-name" placeholder="Enter guest name">
+                                <i class="material-icons">person</i>
+                            </div>
+                        </div>
+                        <div class="quick-booking-form-group">
+                            <label for="qb-phone">Phone Number</label>
+                            <div class="input-with-icon">
+                                <input type="text" id="qb-phone" placeholder="Enter phone number">
+                                <i class="material-icons">call</i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="quick-booking-form-row">
+                        <div class="quick-booking-form-group">
+                            <label for="qb-email">Email (optional)</label>
+                            <div class="input-with-icon">
+                                <input type="email" id="qb-email" placeholder="Enter email address">
+                                <i class="material-icons">email</i>
+                            </div>
+                        </div>
+                        <div class="quick-booking-form-group">
+                            <label for="qb-special-requests">Special Requests</label>
+                            <div class="input-with-icon">
+                                <input type="text" id="qb-special-requests" placeholder="Add notes or requests">
+                                <i class="material-icons">content_paste</i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="quick-booking-form-row">
+                        <div class="quick-booking-form-group">
+                            <label for="qb-booking-type">Booking Type</label>
+                            <select id="qb-booking-type" required>
+                                <option value="">Select booking type</option>
+                                <option value="daytour">Day Tour (8am–6pm)</option>
+                                <option value="overnight">Overnight Stay</option>
+                            </select>
+                            <label for="qb-cottage-type">Cottage Type</label>
+                            <select id="qb-cottage-type" required>
+                                <option value="">Select cottage type</option>
+                                <option value="standard">Standard Cottage</option>
+                                <option value="deluxe">Deluxe Cottage</option>
+                                <option value="family">Family Cottage</option>
+                                <option value="villa">Villa</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="quick-booking-form-row">
+                        <div id="qb-daytour-fields" class="quick-booking-form-group">
+                            <label for="qb-schedule-date">Schedule Date</label>
+                            <div class="input-with-icon">
+                                <input type="date" id="qb-schedule-date">
+                                <i class="material-icons">calendar_today</i>
+                            </div>
+                        </div>
+                        <div id="qb-overnight-fields" class="quick-booking-form-group" style="display:none;">
+                            <label for="qb-checkin-date">Check-in Date</label>
+                            <div class="input-with-icon">
+                                <input type="date" id="qb-checkin-date">
+                                <i class="material-icons">calendar_today</i>
+                            </div>
+                            <label for="qb-checkout-date">Check-out Date</label>
+                            <div class="input-with-icon">
+                                <input type="date" id="qb-checkout-date">
+                                <i class="material-icons">calendar_today</i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="quick-booking-form-row">
+                        <div class="quick-booking-form-group">
+                            <label for="qb-adults">Adults</label>
+                            <div class="input-with-icon">
+                                <input type="number" id="qb-adults" placeholder="Number of adults">
+                                <i class="material-icons">group</i>
+                            </div>
+                        </div>
+                        <div class="quick-booking-form-group">
+                            <label for="qb-children">Children</label>
+                            <div class="input-with-icon">
+                                <input type="number" id="qb-children" placeholder="Number of children">
+                                <i class="material-icons">visibility</i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="quick-booking-form-actions">
+                        <button type="submit" class="btn book-checkin-btn">Book & Check In</button>
+                        <button type="button" class="btn cancel-btn">Cancel</button>
+                    </div>
+                </form>
+                <div id="quick-booking-guest-details" style="display:none; margin-top: 24px;">
+                    <h2>Walk-in Guests <span class="walkin-count" style="font-size:1rem;color:#6c63ff;font-weight:600;">2</span></h2>
+                    <table class="walkin-guest-list" style="width:100%; border-collapse:collapse;">
+                        <thead>
+                            <tr>
+                                <th style="text-align:left; padding:8px; border-bottom:1px solid #eee;">Name</th>
+                                <th style="text-align:left; padding:8px; border-bottom:1px solid #eee;">Cottage Type</th>
+                                <th style="text-align:left; padding:8px; border-bottom:1px solid #eee;">Booking Type</th>
+                                <th style="text-align:left; padding:8px; border-bottom:1px solid #eee;">Date/Time</th>
+                                <th style="text-align:left; padding:8px; border-bottom:1px solid #eee;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dynamic rows will be rendered by JS -->
+                        </tbody>
+                    </table>
+                    <p style="color:#888; font-size:0.98em; margin-top:12px;">This list will update automatically as new walk-in guests are added.</p>
+                </div>
+                <div id="quick-booking-alert" style="display:none;"></div>
+            </div>
+
+            <!-- Guest Management Panel (hidden initially) -->
+            <div id="guest-management-panel" class="dashboard-panel">
+                <div class="content-header">
+                    <h1>Guest Management</h1>
+                    <p>Manage and approve pending bookings</p>
+                </div>
+                <div class="pending-bookings-list">
+                    <h2>Pending Bookings</h2>
+                    <div id="pending-bookings-container"></div>
+                    <p id="no-pending-bookings" style="text-align:center; color:#888; display:none;">No pending bookings.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html> 
