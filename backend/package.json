@@ -2,10 +2,10 @@
   "name": "booking-system-backend",
   "version": "1.0.0",
   "description": "A comprehensive booking system backend for reservation websites",
-  "main": "server.js",
+  "main": "app.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
+    "start": "node app.js",
+    "dev": "nodemon app.js",
     "test": "jest",
     "test:watch": "jest --watch",
     "lint": "eslint .",
@@ -50,10 +50,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/YOUR_USERNAME/villa-ester-resort.git"
+    "url": "https://github.com/W0nd3r1ng/villa-ester-resort.git"
   },
   "bugs": {
-    "url": "https://github.com/YOUR_USERNAME/villa-ester-resort/issues"
+    "url": "https://github.com/W0nd3r1ng/villa-ester-resort/issues"
   },
-  "homepage": "https://github.com/YOUR_USERNAME/villa-ester-resort#readme"
+  "homepage": "https://github.com/W0nd3r1ng/villa-ester-resort#readme"
 } 
