@@ -666,31 +666,38 @@ document.addEventListener('DOMContentLoaded', function() {
         alert('Modify Stay feature coming soon! Here you will be able to change dates, room, or guest details for current guests.');
     }
 
-    // --- Settings: Change Password Functionality ---
-    const changePasswordForm = document.getElementById('change-password-form');
-    if (changePasswordForm) {
-        changePasswordForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const current = document.getElementById('current-password').value;
-            const newPass = document.getElementById('new-password').value;
-            const confirm = document.getElementById('confirm-password').value;
-            // For demo: use localStorage to store password (insecure, for demo only)
-            let storedPass = localStorage.getItem('clerk_password') || 'clerk';
-            if (current !== storedPass) {
-                showAlert('Current password is incorrect.', 'error');
-                return;
+    // --- Settings: Change Number Functionality ---
+    const phoneInput = document.getElementById('profile-phone');
+    const changeNumberBtn = document.getElementById('change-number-btn');
+    if (changeNumberBtn && phoneInput) {
+        changeNumberBtn.addEventListener('click', function() {
+            if (phoneInput.readOnly) {
+                phoneInput.readOnly = false;
+                phoneInput.focus();
+                changeNumberBtn.textContent = 'Save Number';
+            } else {
+                const newPhone = phoneInput.value.trim();
+                if (!/^\+?\d[\d\s-]{7,}$/.test(newPhone)) {
+                    showAlert('Please enter a valid phone number.', 'error');
+                    return;
+                }
+                localStorage.setItem('clerk_phone', newPhone);
+                phoneInput.readOnly = true;
+                changeNumberBtn.textContent = 'Change Number';
+                showAlert('Phone number updated!', 'success');
             }
-            if (newPass.length < 4) {
-                showAlert('New password must be at least 4 characters.', 'error');
-                return;
-            }
-            if (newPass !== confirm) {
-                showAlert('Passwords do not match.', 'error');
-                return;
-            }
-            localStorage.setItem('clerk_password', newPass);
-            changePasswordForm.reset();
-            showAlert('Password changed successfully!', 'success');
+        });
+        // Load saved phone if exists
+        const savedPhone = localStorage.getItem('clerk_phone');
+        if (savedPhone) phoneInput.value = savedPhone;
+    }
+    // --- Settings: Sign Out Functionality ---
+    const signoutBtn = document.getElementById('signout-btn');
+    if (signoutBtn) {
+        signoutBtn.addEventListener('click', function() {
+            localStorage.clear();
+            showAlert('Signed out!', 'success');
+            setTimeout(() => window.location.reload(), 800);
         });
     }
 
