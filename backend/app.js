@@ -6,6 +6,7 @@ require('dotenv').config();
 const bookingRoutes = require('./routes/bookings');
 const cottageRoutes = require('./routes/cottages');
 const recommendationRoutes = require('./routes/recommendations');
+const reviewRoutes = require('./routes/reviews');
 
 const app = express();
 app.use(cors());
@@ -18,7 +19,8 @@ app.get('/', (req, res) => {
     endpoints: {
       cottages: '/api/cottages',
       bookings: '/api/bookings',
-      recommendations: '/api/recommendations'
+      recommendations: '/api/recommendations',
+      reviews: '/api/reviews'
     }
   });
 });
@@ -30,6 +32,7 @@ mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTop
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/cottages', cottageRoutes);
 app.use('/api/recommendations', recommendationRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`)); 
