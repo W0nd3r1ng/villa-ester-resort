@@ -1,6 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const http = require('http');
+const socketIo = require('socket.io');
 require('dotenv').config();
 
 const bookingRoutes = require('./routes/bookingRoutes');
@@ -9,6 +11,17 @@ const recommendationRoutes = require('./routes/recommendations');
 const reviewRoutes = require('./routes/reviews');
 
 const app = express();
+const server = http.createServer(app);
+
+// Socket.IO setup with CORS
+const io = socketIo(server, {
+  cors: {
+    origin: process.env.CORS_ORIGIN || '*',
+    methods: ['GET', 'POST'],
+    credentials: true
+  }
+});
+
 // CORS configuration
 app.use(cors({
   origin: process.env.CORS_ORIGIN || '*',
@@ -45,5 +58,33 @@ app.use('/api/cottages', cottageRoutes);
 app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/reviews', reviewRoutes);
 
+// Socket.IO connection handling
+io.on('connection', (socket) => {
+  console.log('Client connected:', socket.id);
+  
+  // Join booking room for real-time updates
+  socket.on('join-booking-room', (bookingId) => {
+    socket.join(`booking-${bookingId}`);
+    console.log(`Client ${socket.id} joined booking room: ${bookingId}`);
+  });
+  
+  // Handle booking updates
+  socket.on('booking-update', (data) => {
+    io.to(`booking-${data.bookingId}`).emit('booking-updated', data);
+  });
+  
+  // Handle new bookings
+  socket.on('new-booking', (data) => {
+    io.emit('booking-created', data);
+  });
+  
+  socket.on('disconnect', () => {
+    console.log('Client disconnected:', socket.id);
+  });
+});
+
+// Make io available to routes
+app.set('io', io);
+
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`)); 
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`)); 

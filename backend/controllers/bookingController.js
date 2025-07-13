@@ -161,6 +161,16 @@ exports.createBooking = async (req, res) => {
       .populate('userId', 'name email')
       .populate('serviceId', 'name price duration');
 
+    // Emit Socket.IO event for new booking
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('booking-created', {
+        booking: populatedBooking,
+        message: 'New booking created',
+        timestamp: new Date()
+      });
+    }
+
     res.status(201).json({
       success: true,
       message: 'Booking created successfully',
@@ -232,6 +242,16 @@ exports.updateBooking = async (req, res) => {
       { new: true, runValidators: true }
     ).populate('userId', 'name email')
      .populate('serviceId', 'name price duration');
+
+    // Emit Socket.IO event for booking update
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`booking-${id}`).emit('booking-updated', {
+        booking: updatedBooking,
+        message: 'Booking updated',
+        timestamp: new Date()
+      });
+    }
 
     res.json({
       success: true,
