@@ -4,7 +4,7 @@ const cors = require('cors');
 require('dotenv').config();
 
 const bookingRoutes = require('./routes/bookings');
-const roomRoutes = require('./routes/rooms');
+const cottageRoutes = require('./routes/cottages');
 const recommendationRoutes = require('./routes/recommendations');
 
 const app = express();
@@ -16,7 +16,7 @@ app.get('/', (req, res) => {
   res.json({ 
     message: 'Villa Ester Resort API is running!',
     endpoints: {
-      rooms: '/api/rooms',
+      cottages: '/api/cottages',
       bookings: '/api/bookings',
       recommendations: '/api/recommendations'
     }
@@ -28,7 +28,7 @@ mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTop
   .catch(err => console.error('MongoDB connection error:', err));
 
 app.use('/api/bookings', bookingRoutes);
-app.use('/api/rooms', roomRoutes);
+app.use('/api/cottages', cottageRoutes);
 app.use('/api/recommendations', recommendationRoutes);
 
 const PORT = process.env.PORT || 5000;

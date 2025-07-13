@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const roomController = require('../controllers/roomController');
+const cottageController = require('../controllers/cottageController');
 
-router.get('/', roomController.getAllRooms);
+router.get('/', cottageController.getAllCottages);
 // Add more endpoints as needed
 
 module.exports = router; 
