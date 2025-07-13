@@ -26,7 +26,7 @@ app.use(express.json());
 // Add root route
 app.get('/', (req, res) => {
   res.json({ 
-    message: 'Villa Ester Resort API is running!',
+    message: 'Villa Ester Resort API is running! (Updated with CORS fixes)',
     endpoints: {
       cottages: '/api/cottages',
       bookings: '/api/bookings',
