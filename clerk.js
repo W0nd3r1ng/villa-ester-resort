@@ -518,24 +518,84 @@ document.addEventListener('DOMContentLoaded', function() {
     const viewReportBtn = document.querySelectorAll('.dashboard-overview .card .action-btn-primary')[1];
     if (viewDetailsBtn) {
         viewDetailsBtn.addEventListener('click', function() {
+            // Calculate real occupancy details
+            const today = new Date().toISOString().slice(0, 10);
+            const occupiedCottageIds = new Set();
+            const cottageBookingCounts = {};
+            bookingsData.forEach(booking => {
+                const bookingDate = (booking.bookingDate || '').slice(0, 10);
+                if ((booking.status !== 'cancelled' && booking.status !== 'rejected') && bookingDate === today) {
+                    const cottageId = booking.cottageId || booking.cottage || booking.cottageName;
+                    occupiedCottageIds.add(cottageId);
+                    if (cottageId) {
+                        cottageBookingCounts[cottageId] = (cottageBookingCounts[cottageId] || 0) + 1;
+                    }
+                }
+            });
+            const occupiedCount = occupiedCottageIds.size;
+            const totalCottages = cottagesData.length;
+            const vacantCount = totalCottages - occupiedCount;
+            const occupancy = totalCottages ? Math.round((occupiedCount / totalCottages) * 100) : 0;
+            // Find most popular cottage
+            let mostPopularCottage = 'N/A';
+            let maxBookings = 0;
+            cottagesData.forEach(cottage => {
+                const count = cottageBookingCounts[cottage._id] || cottageBookingCounts[cottage.name] || 0;
+                if (count > maxBookings) {
+                    maxBookings = count;
+                    mostPopularCottage = cottage.name;
+                }
+            });
             showDashboardModal('Total Occupancy Details', `
                 <ul style='padding-left:18px;'>
-                    <li>Occupied Rooms: 39</li>
-                    <li>Vacant Rooms: 11</li>
-                    <li>Occupancy Rate: 78%</li>
-                    <li>Most Popular Room: Ocean View Suite</li>
+                    <li>Occupied Cottages: ${occupiedCount}</li>
+                    <li>Vacant Cottages: ${vacantCount}</li>
+                    <li>Occupancy Rate: ${occupancy}%</li>
+                    <li>Most Popular Cottage: ${mostPopularCottage}</li>
                 </ul>
             `);
         });
     }
     if (viewReportBtn) {
         viewReportBtn.addEventListener('click', function() {
-            showDashboardModal('Today\'s Revenue Report', `
+            // Calculate real revenue details
+            const today = new Date().toISOString().slice(0, 10);
+            let todayRevenue = 0;
+            let todayBookings = 0;
+            let highestSale = 0;
+            let highestSaleCottage = 'N/A';
+            const cottageBookingCounts = {};
+            bookingsData.forEach(booking => {
+                const bookingDate = (booking.bookingDate || '').slice(0, 10);
+                if ((booking.status !== 'cancelled' && booking.status !== 'rejected') && bookingDate === today) {
+                    todayRevenue += booking.price || 0;
+                    todayBookings++;
+                    const cottageId = booking.cottageId || booking.cottage || booking.cottageName;
+                    if (booking.price > highestSale) {
+                        highestSale = booking.price;
+                        highestSaleCottage = cottageId;
+                    }
+                    if (cottageId) {
+                        cottageBookingCounts[cottageId] = (cottageBookingCounts[cottageId] || 0) + 1;
+                    }
+                }
+            });
+            // Find most booked cottage
+            let mostBookedCottage = 'N/A';
+            let maxBookings = 0;
+            cottagesData.forEach(cottage => {
+                const count = cottageBookingCounts[cottage._id] || cottageBookingCounts[cottage.name] || 0;
+                if (count > maxBookings) {
+                    maxBookings = count;
+                    mostBookedCottage = cottage.name;
+                }
+            });
+            showDashboardModal("Today's Revenue Report", `
                 <ul style='padding-left:18px;'>
-                    <li>Total Revenue: $4,850</li>
-                    <li>Bookings: 12</li>
-                    <li>Highest Sale: Villa - $1,200</li>
-                    <li>Most Booked: Standard Cottage</li>
+                    <li>Total Revenue: ₱${todayRevenue.toLocaleString()}</li>
+                    <li>Bookings: ${todayBookings}</li>
+                    <li>Highest Sale: ${highestSaleCottage !== 'N/A' ? highestSaleCottage + ' - ₱' + highestSale.toLocaleString() : 'N/A'}</li>
+                    <li>Most Booked: ${mostBookedCottage}</li>
                 </ul>
             `);
         });
