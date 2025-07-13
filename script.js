@@ -177,7 +177,7 @@ async function fetchAndDisplayReviews() {
                 <div class="review-card">
                     <div class="review-header">
                         <div class="reviewer-info">
-                            <img src="images/${review.image || 'reviewer1.jpg'}" alt="${review.name}" class="reviewer-avatar">
+                            <img class="reviewer-avatar" alt="${review.name}" onerror="this.style.display='none';" src="${review.image ? 'images/' + review.image : ''}">
                             <div>
                                 <h3 class="reviewer-name">${review.name}</h3>
                                 <div class="review-stars">★★★★★</div>
