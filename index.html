@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Villa Ester Resort</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="script.js" defer></script>
 </head>
 <body>
@@ -30,35 +31,80 @@
         </div>
     </div>
     <section class="booking-section">
-        <form class="booking-form">
-            <label for="booking-type">Booking Type</label>
-            <select id="booking-type" name="booking-type" required>
-                <option value="">Select booking type</option>
-                <option value="daytour">Day Tour (8am–6pm)</option>
-                <option value="overnight">Overnight Stay</option>
-            </select>
-            <div id="daytour-fields">
-                <label for="schedule-date">Schedule Date</label>
-                <input type="date" id="schedule-date" name="schedule-date">
+        <div class="booking-header">
+            <h2>Find Your Perfect Cottage</h2>
+            <p>Check availability and book your dream getaway</p>
+        </div>
+        <form class="booking-form" id="availability-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="booking-type">Booking Type</label>
+                    <select id="booking-type" name="booking-type" required>
+                        <option value="">Select booking type</option>
+                        <option value="daytour">Day Tour (8am–6pm)</option>
+                        <option value="overnight">Overnight Stay</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="guests">Number of Guests</label>
+                    <input type="number" id="guests" name="guests" min="1" max="20" value="2" required>
+                </div>
             </div>
-            <div id="overnight-fields" style="display:none;">
-                <label for="checkin-date">Check-in Date</label>
-                <input type="date" id="checkin-date" name="checkin-date">
-                <label for="checkout-date">Check-out Date</label>
-                <input type="date" id="checkout-date" name="checkout-date">
+            
+            <div id="daytour-fields" class="date-fields">
+                <div class="form-group">
+                    <label for="schedule-date">Schedule Date</label>
+                    <input type="date" id="schedule-date" name="schedule-date">
+                </div>
             </div>
-            <label for="cottage-type">Cottage Type</label>
-            <select id="cottage-type" name="cottage-type" required>
-                <option value="">Select a cottage type</option>
-                <option value="standard">Standard Cottage</option>
-                <option value="deluxe">Deluxe Cottage</option>
-                <option value="family">Family Cottage</option>
-                <option value="villa">Villa</option>
-            </select>
-            <label for="guests">Guests</label>
-            <input type="number" id="guests" name="guests" min="1" value="2" required>
-            <button type="submit" class="booking-btn">Search Availability</button>
+            
+            <div id="overnight-fields" class="date-fields" style="display:none;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="checkin-date">Check-in Date</label>
+                        <input type="date" id="checkin-date" name="checkin-date">
+                    </div>
+                    <div class="form-group">
+                        <label for="checkout-date">Check-out Date</label>
+                        <input type="date" id="checkout-date" name="checkout-date">
+                    </div>
+                </div>
+            </div>
+            
+            <button type="submit" class="search-btn">
+                <span class="search-icon">🔍</span>
+                Search Availability
+            </button>
         </form>
+        
+        <!-- Availability Results -->
+        <div id="availability-results" class="availability-results" style="display: none;">
+            <div class="results-header">
+                <h3>Available Cottages</h3>
+                <div class="results-count">
+                    <span id="results-count">0</span> cottages available
+                </div>
+            </div>
+            
+            <div id="cottages-grid" class="cottages-grid">
+                <!-- Cottage cards will be dynamically loaded here -->
+            </div>
+            
+            <div id="no-results" class="no-results" style="display: none;">
+                <div class="no-results-icon">🏖️</div>
+                <h4>No cottages available for selected dates</h4>
+                <p>Try different dates or contact us for assistance</p>
+                <button class="btn btn-primary" onclick="document.getElementById('availability-form').scrollIntoView()">
+                    Try Different Dates
+                </button>
+            </div>
+        </div>
+        
+        <!-- Loading State -->
+        <div id="loading-state" class="loading-state" style="display: none;">
+            <div class="loading-spinner"></div>
+            <p>Searching for available cottages...</p>
+        </div>
     </section>
     <section class="recommend-section">
         <h2>AI Recommended for You</h2>

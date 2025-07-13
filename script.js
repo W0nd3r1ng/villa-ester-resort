@@ -1,13 +1,67 @@
+// Socket.IO connection
+const socket = io('https://villa-ester-backend.onrender.com', {
+  transports: ['websocket', 'polling']
+});
+
+// Socket.IO event handlers
+socket.on('connect', () => {
+  console.log('Connected to server via Socket.IO');
+});
+
+socket.on('disconnect', () => {
+  console.log('Disconnected from server');
+});
+
+socket.on('booking-created', (data) => {
+  console.log('New booking created:', data);
+  showNotification('New booking received!', 'success');
+});
+
+socket.on('booking-updated', (data) => {
+  console.log('Booking updated:', data);
+  showNotification('Booking status updated!', 'info');
+});
+
+// Notification function
+function showNotification(message, type = 'info') {
+  const notification = document.createElement('div');
+  notification.className = `notification notification-${type}`;
+  notification.textContent = message;
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: ${type === 'success' ? '#4CAF50' : '#2196F3'};
+    color: white;
+    padding: 15px 20px;
+    border-radius: 5px;
+    z-index: 10000;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    animation: slideIn 0.3s ease-out;
+  `;
+  
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    notification.style.animation = 'slideOut 0.3s ease-in';
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+    }, 300);
+  }, 3000);
+}
+
 // Function to handle scroll highlight effect
 function handleScrollHighlight() {
-    const reviewsSection = document.querySelector('.reviews-section');
-    const sectionTop = reviewsSection.getBoundingClientRect().top;
-    const windowHeight = window.innerHeight;
-    
-    // Add 'visible' class when section is in viewport
-    if (sectionTop < windowHeight * 0.75) {
-        reviewsSection.classList.add('visible');
-    }
+  const reviewsSection = document.querySelector('.reviews-section');
+  const sectionTop = reviewsSection.getBoundingClientRect().top;
+  const windowHeight = window.innerHeight;
+  
+  // Add 'visible' class when section is in viewport
+  if (sectionTop < windowHeight * 0.75) {
+    reviewsSection.classList.add('visible');
+  }
 }
 
 // Add scroll event listener
@@ -197,4 +251,166 @@ async function fetchAndDisplayReviews() {
 }
 
 // Fetch reviews on page load
-fetchAndDisplayReviews(); 
+fetchAndDisplayReviews();
+
+// --- Availability Search Functionality ---
+const availabilityForm = document.getElementById('availability-form');
+const availabilityResults = document.getElementById('availability-results');
+const loadingState = document.getElementById('loading-state');
+const cottagesGrid = document.getElementById('cottages-grid');
+const noResults = document.getElementById('no-results');
+const resultsCount = document.getElementById('results-count');
+
+// Handle booking type change
+const bookingTypeSelect = document.getElementById('booking-type');
+const daytourFields = document.getElementById('daytour-fields');
+const overnightFields = document.getElementById('overnight-fields');
+
+if (bookingTypeSelect) {
+    bookingTypeSelect.addEventListener('change', function() {
+        if (this.value === 'daytour') {
+            daytourFields.style.display = 'block';
+            overnightFields.style.display = 'none';
+        } else if (this.value === 'overnight') {
+            daytourFields.style.display = 'none';
+            overnightFields.style.display = 'block';
+        } else {
+            daytourFields.style.display = 'none';
+            overnightFields.style.display = 'none';
+        }
+    });
+}
+
+// Handle availability search
+if (availabilityForm) {
+    availabilityForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Show loading state
+        loadingState.style.display = 'block';
+        availabilityResults.style.display = 'none';
+        
+        // Collect form data
+        const bookingType = document.getElementById('booking-type').value;
+        const guests = parseInt(document.getElementById('guests').value, 10);
+        let bookingDate = '';
+        let checkoutDate = '';
+        
+        if (bookingType === 'daytour') {
+            bookingDate = document.getElementById('schedule-date').value;
+        } else if (bookingType === 'overnight') {
+            bookingDate = document.getElementById('checkin-date').value;
+            checkoutDate = document.getElementById('checkout-date').value;
+        }
+        
+        try {
+            // Fetch available cottages
+            const response = await fetch('https://villa-ester-backend.onrender.com/api/cottages');
+            const data = await response.json();
+            
+            if (data.success && Array.isArray(data.data)) {
+                // Filter cottages based on availability (simplified logic)
+                const availableCottages = data.data.filter(cottage => {
+                    // For demo purposes, show all cottages as available
+                    // In real implementation, you'd check against actual bookings
+                    return cottage.capacity >= guests;
+                });
+                
+                displayCottages(availableCottages);
+            } else {
+                showNoResults();
+            }
+        } catch (error) {
+            console.error('Error fetching cottages:', error);
+            showNoResults();
+        } finally {
+            loadingState.style.display = 'none';
+        }
+    });
+}
+
+function displayCottages(cottages) {
+    if (cottages.length === 0) {
+        showNoResults();
+        return;
+    }
+    
+    resultsCount.textContent = cottages.length;
+    
+    cottagesGrid.innerHTML = cottages.map(cottage => `
+        <div class="cottage-card">
+            <div class="cottage-image">
+                ${cottage.image ? `<img src="images/${cottage.image}" alt="${cottage.name}" style="width:100%;height:100%;object-fit:cover;">` : '🏖️'}
+            </div>
+            <div class="cottage-content">
+                <div class="cottage-header">
+                    <div>
+                        <h3 class="cottage-title">${cottage.name}</h3>
+                        <div class="cottage-type">${cottage.type}</div>
+                    </div>
+                    <div class="cottage-price">
+                        <div class="price-amount">₱${cottage.price}</div>
+                        <div class="price-period">per night</div>
+                    </div>
+                </div>
+                
+                <div class="cottage-features">
+                    <div class="feature">
+                        <span class="feature-icon">👥</span>
+                        <span>${cottage.capacity} guests</span>
+                    </div>
+                    <div class="feature">
+                        <span class="feature-icon">🛏️</span>
+                        <span>${cottage.bedrooms || 1} bedroom</span>
+                    </div>
+                    <div class="feature">
+                        <span class="feature-icon">🚿</span>
+                        <span>${cottage.bathrooms || 1} bathroom</span>
+                    </div>
+                </div>
+                
+                <p class="cottage-description">${cottage.description || 'Experience luxury and comfort in this beautiful cottage.'}</p>
+                
+                <div class="cottage-actions">
+                    <button class="book-now-btn" onclick="openBookingModal('${cottage._id}', '${cottage.name}')">
+                        Book Now
+                    </button>
+                    <button class="view-details-btn" onclick="viewCottageDetails('${cottage._id}')">
+                        View Details
+                    </button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+    
+    availabilityResults.style.display = 'block';
+    availabilityResults.scrollIntoView({ behavior: 'smooth' });
+}
+
+function showNoResults() {
+    resultsCount.textContent = '0';
+    cottagesGrid.innerHTML = '';
+    noResults.style.display = 'block';
+    availabilityResults.style.display = 'block';
+    availabilityResults.scrollIntoView({ behavior: 'smooth' });
+}
+
+function openBookingModal(cottageId, cottageName) {
+    // Pre-fill the booking modal with cottage details
+    const modalCottageType = document.getElementById('modal-cottage-type');
+    if (modalCottageType) {
+        modalCottageType.value = cottageName.toLowerCase().replace(/\s+/g, '-');
+    }
+    
+    // Open the booking modal
+    const bookingModal = document.getElementById('booking-modal');
+    if (bookingModal) {
+        bookingModal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function viewCottageDetails(cottageId) {
+    // For now, just show an alert. You can implement a detailed view modal later
+    alert('Cottage details feature coming soon!');
+} 
