@@ -1195,24 +1195,60 @@
             const dashboardCards = document.querySelectorAll('.dashboard-overview .card');
             if (dashboardCards.length) {
                 // Total Occupancy
-                dashboardCards[0].querySelector('button').onclick = function() {
+                dashboardCards[0].querySelector('button').onclick = async function() {
+                    const occupancy = await fetchAPI('/api/admin/room-occupancy');
+                    const bookings = await fetchAPI('/api/admin/bookings');
+                    const today = new Date().toISOString().slice(0, 10);
+                    let occupied = occupancy.filter(c => c.occupied).length;
+                    let total = occupancy.length;
+                    let vacant = total - occupied;
+                    let occupancyPercent = total ? Math.round((occupied / total) * 100) : 0;
+                    // Find most popular room
+                    const cottageBookingCounts = {};
+                    bookings.filter(b => (b.bookingDate || '').slice(0,10) === today).forEach(b => {
+                        const key = b.cottageType || b.roomType || b.cottageName || 'N/A';
+                        cottageBookingCounts[key] = (cottageBookingCounts[key] || 0) + 1;
+                    });
+                    let mostPopular = 'N/A';
+                    let maxCount = 0;
+                    for (const [name, count] of Object.entries(cottageBookingCounts)) {
+                        if (count > maxCount) { maxCount = count; mostPopular = name; }
+                    }
                     showAdminModal('Total Occupancy Details', `
                         <ul style='padding-left:18px;'>
-                            <li>Occupied Rooms: 39</li>
-                            <li>Vacant Rooms: 11</li>
-                            <li>Occupancy Rate: 78%</li>
-                            <li>Most Popular Room: Ocean View Suite</li>
+                            <li>Occupied Rooms: ${occupied}</li>
+                            <li>Vacant Rooms: ${vacant}</li>
+                            <li>Occupancy Rate: ${occupancyPercent}%</li>
+                            <li>Most Popular Room: ${mostPopular}</li>
                         </ul>
                     `);
                 };
                 // Today's Revenue
-                dashboardCards[1].querySelector('button').onclick = function() {
-                    showAdminModal('Today\'s Revenue Report', `
+                dashboardCards[1].querySelector('button').onclick = async function() {
+                    const bookings = await fetchAPI('/api/admin/bookings');
+                    const today = new Date().toISOString().slice(0, 10);
+                    let todayBookings = bookings.filter(b => (b.bookingDate || '').slice(0,10) === today);
+                    let todayRevenue = todayBookings.reduce((sum, b) => sum + (b.price || 0), 0);
+                    let highestSale = 0;
+                    let highestSaleRoom = 'N/A';
+                    let cottageBookingCounts = {};
+                    todayBookings.forEach(b => {
+                        const price = b.price || 0;
+                        const key = b.cottageType || b.roomType || b.cottageName || 'N/A';
+                        if (price > highestSale) { highestSale = price; highestSaleRoom = key; }
+                        cottageBookingCounts[key] = (cottageBookingCounts[key] || 0) + 1;
+                    });
+                    let mostBooked = 'N/A';
+                    let maxCount = 0;
+                    for (const [name, count] of Object.entries(cottageBookingCounts)) {
+                        if (count > maxCount) { maxCount = count; mostBooked = name; }
+                    }
+                    showAdminModal("Today's Revenue Report", `
                         <ul style='padding-left:18px;'>
-                            <li>Total Revenue: $4,850</li>
-                            <li>Bookings: 12</li>
-                            <li>Highest Sale: Villa - $1,200</li>
-                            <li>Most Booked: Standard Cottage</li>
+                            <li>Total Revenue: ₱${todayRevenue.toLocaleString()}</li>
+                            <li>Bookings: ${todayBookings.length}</li>
+                            <li>Highest Sale: ${highestSaleRoom !== 'N/A' ? highestSaleRoom + ' - ₱' + highestSale.toLocaleString() : 'N/A'}</li>
+                            <li>Most Booked: ${mostBooked}</li>
                         </ul>
                     `);
                 };
