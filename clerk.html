@@ -322,29 +322,46 @@
             </div>
 
             <!-- Settings Panel (hidden initially) -->
-            <div id="settings-panel" class="dashboard-panel" style="display:none; justify-content:center; align-items:center; min-height:80vh;">
-                <div class="settings-card" style="background:#fff;max-width:420px;width:100%;margin:40px auto 0 auto;padding:32px 28px 24px 28px;border-radius:18px;box-shadow:0 4px 32px rgba(80,80,120,0.10);">
-                    <h2 style="font-size:1.25em;font-weight:700;margin-bottom:18px;">Profile information</h2>
-                    <div style="display:flex;align-items:center;gap:18px;margin-bottom:18px;">
-                        <div class="profile-avatar" style="width:56px;height:56px;border-radius:50%;background:#ece8ff;display:flex;align-items:center;justify-content:center;font-size:2em;color:#6c63ff;">
-                            <span class="material-icons" style="font-size:2em;">person</span>
+            <div id="settings-panel" class="dashboard-panel settings-panel" style="display:none;">
+                <div class="settings-card">
+                    <h2 class="settings-title">Profile information</h2>
+                    <div class="settings-avatar-row">
+                        <div class="profile-avatar">
+                            <span class="material-icons">person</span>
                         </div>
-                        <button class="btn btn-secondary" id="upload-photo-btn" style="height:32px;">Upload photo</button>
+                        <button class="btn btn-secondary" id="upload-photo-btn">Upload photo</button>
                     </div>
-                    <div class="settings-form-group" style="margin-bottom:16px;">
-                        <label style="font-weight:600;">Display name</label>
-                        <input type="text" value="clerk" readonly style="width:100%;margin-top:4px;">
+                    <div class="settings-form-group">
+                        <label>Display name</label>
+                        <input type="text" id="profile-username" value="clerk" readonly>
                     </div>
-                    <div class="settings-form-group" style="margin-bottom:16px;">
-                        <label style="font-weight:600;">Email</label>
-                        <input type="email" value="clerk@villaester.com" readonly style="width:100%;margin-top:4px;">
+                    <div class="settings-form-group">
+                        <label>Email</label>
+                        <input type="email" id="profile-email" value="clerk@villaester.com" readonly>
                     </div>
-                    <div class="settings-form-group" style="margin-bottom:8px;">
-                        <label style="font-weight:600;">Phone number</label>
-                        <input type="text" id="profile-phone" value="+63 900 000 0000" readonly style="width:100%;margin-top:4px;">
+                    <div class="settings-form-group">
+                        <label>Phone number</label>
+                        <input type="text" id="profile-phone" value="+63 900 000 0000" readonly>
                     </div>
-                    <button class="btn btn-primary" id="change-number-btn" style="width:100%;margin-bottom:18px;">Change Number</button>
-                    <button class="btn btn-danger" id="signout-btn" style="width:100%;margin-top:18px;background:#e74c3c;color:#fff;">Sign Out</button>
+                    <button class="btn btn-primary" id="change-number-btn">Change Number</button>
+                    <button class="btn btn-outline" id="change-password-btn">Change Password</button>
+                    <button class="btn btn-danger" id="signout-btn">Sign Out</button>
+                </div>
+            </div>
+            <!-- Change Password Modal -->
+            <div id="change-password-modal" class="modal" style="display:none;">
+                <div class="modal-content">
+                    <span class="close-modal" id="close-password-modal">&times;</span>
+                    <h3>Change Password</h3>
+                    <form id="change-password-form">
+                        <label for="current-password">Current Password</label>
+                        <input type="password" id="current-password" required>
+                        <label for="new-password">New Password</label>
+                        <input type="password" id="new-password" required>
+                        <label for="confirm-password">Confirm New Password</label>
+                        <input type="password" id="confirm-password" required>
+                        <button type="submit" class="btn btn-primary">Change Password</button>
+                    </form>
                 </div>
             </div>
 
