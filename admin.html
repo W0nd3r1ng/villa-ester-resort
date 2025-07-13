@@ -753,6 +753,7 @@
                 <li><a href="#" id="bookings-sidebar-link" data-panel="bookings-panel"><i class="fas fa-calendar-alt"></i> Bookings</a></li>
                 <li><a href="#" data-panel="customers-panel"><i class="fas fa-users"></i> Customers</a></li>
                 <li><a href="#" data-panel="analytics-panel"><i class="fas fa-chart-bar"></i> Analytics</a></li>
+                <li><a href="#" data-panel="admin-account-panel"><i class="fas fa-user-circle"></i> Account</a></li>
             </ul>
         </nav>
         <div class="settings-section">
@@ -929,6 +930,32 @@
         <div class="report-generation-section">
             <button class="generate-report-btn" id="generate-monthly-audit-btn">Generate Monthly Audit Report</button>
         </div>
+    </div>
+
+    <!-- Admin Account Panel -->
+    <div class="main-content" style="display:none;" id="admin-account-panel">
+        <h2 class="settings-title">Profile information</h2>
+        <div class="settings-avatar-row">
+            <div class="profile-avatar">
+                <span class="material-icons">person</span>
+            </div>
+            <button class="btn btn-secondary" id="admin-upload-photo-btn">Upload photo</button>
+        </div>
+        <div class="settings-form-group">
+            <label>Display name</label>
+            <input type="text" id="admin-profile-username" value="admin" readonly>
+        </div>
+        <div class="settings-form-group">
+            <label>Email</label>
+            <input type="email" id="admin-profile-email" value="admin@villaester.com" readonly>
+        </div>
+        <div class="settings-form-group">
+            <label>Phone number</label>
+            <input type="text" id="admin-profile-phone" value="" readonly>
+        </div>
+        <button class="btn btn-primary" id="admin-change-number-btn">Change Number</button>
+        <button class="btn btn-outline" id="admin-change-password-btn">Change Password</button>
+        <button class="btn btn-danger" id="admin-signout-btn">Sign Out</button>
     </div>
 
     <div class="main-content" style="display: none;" id="customers-panel">
@@ -1154,6 +1181,7 @@
             const mainContentPanels = document.querySelectorAll('.main-content');
             const bookingsTableBody = document.getElementById('bookings-table-body');
             const bookingTabs = document.querySelectorAll('.booking-tab');
+            const adminAccountPanel = document.getElementById('admin-account-panel');
 
             function showPanel(panelId) {
                 mainContentPanels.forEach(panel => {
@@ -1179,6 +1207,11 @@
                         renderBookings('all');
                         bookingTabs.forEach(tab => tab.classList.remove('active'));
                         document.querySelector('.booking-tab[data-status="all"]').classList.add('active');
+                    }
+                    if (panelId === 'admin-account-panel') {
+                        showPanel('admin-account-panel');
+                        // Optionally fetch and display admin user info here
+                        // For now, just show the panel
                     }
                 });
             });
@@ -1528,6 +1561,187 @@
 
             // Show the dashboard panel by default on page load
             showPanel('dashboard-panel');
+
+            // --- ADMIN ACCOUNT PANEL ---
+            const adminProfileUsername = document.getElementById('admin-profile-username');
+            const adminProfileEmail = document.getElementById('admin-profile-email');
+            const adminProfilePhone = document.getElementById('admin-profile-phone');
+            const adminUploadPhotoBtn = document.getElementById('admin-upload-photo-btn');
+            const adminChangeNumberBtn = document.getElementById('admin-change-number-btn');
+            const adminChangePasswordBtn = document.getElementById('admin-change-password-btn');
+            const adminSignoutBtn = document.getElementById('admin-signout-btn');
+
+            // Function to fetch and display admin user info
+            async function fetchAdminUserInfo() {
+                try {
+                    const user = await fetchAPI('/api/admin/user/me');
+                    adminProfileUsername.value = user.name || 'N/A';
+                    adminProfileEmail.value = user.email || 'N/A';
+                    adminProfilePhone.value = user.phone || 'N/A';
+                } catch (error) {
+                    console.error('Error fetching admin user info:', error);
+                    showAdminAlert('Failed to load admin profile info.', 'error');
+                }
+            }
+
+            // Fetch info on page load
+            fetchAdminUserInfo();
+
+            // --- UPLOAD PHOTO ---
+            if (adminUploadPhotoBtn) {
+                adminUploadPhotoBtn.onclick = function() {
+                    showAdminModal('Upload Photo', `<form id='upload-photo-form'>
+                        <label>Select new photo:</label><br>
+                        <input type='file' id='photo-file' accept='image/*' style='margin-bottom:10px;'><br>
+                        <button type='submit' style='background:#6a0dad;color:#fff;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;'>Upload</button>
+                    </form>`, {
+                        onShow: (modal) => {
+                            modal.querySelector('#upload-photo-form').onsubmit = async function(e) {
+                                e.preventDefault();
+                                const formData = new FormData();
+                                formData.append('photo', document.getElementById('photo-file').files[0]);
+                                try {
+                                    const response = await fetch('/api/admin/user/photo', {
+                                        method: 'POST',
+                                        body: formData
+                                    });
+                                    const data = await response.json();
+                                    if (data.success) {
+                                        showAdminAlert('Photo uploaded successfully!', 'success');
+                                        // Optionally update the avatar in the sidebar
+                                        // This requires a more complex state management if the sidebar is dynamic
+                                        // For now, just refresh the info
+                                        fetchAdminUserInfo();
+                                    } else {
+                                        showAdminAlert(data.message || 'Failed to upload photo.', 'error');
+                                    }
+                                } catch (error) {
+                                    console.error('Error uploading photo:', error);
+                                    showAdminAlert('Error uploading photo.', 'error');
+                                }
+                                modal.style.display = 'none';
+                            };
+                        }
+                    });
+                };
+            }
+
+            // --- CHANGE NUMBER ---
+            if (adminChangeNumberBtn) {
+                adminChangeNumberBtn.onclick = function() {
+                    showAdminModal('Change Phone Number', `<form id='change-number-form'>
+                        <label>New Phone Number</label><br><input type='text' id='new-phone-number' required style='width:100%;margin-bottom:10px;'><br>
+                        <button type='submit' style='background:#6a0dad;color:#fff;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;'>Change Number</button>
+                    </form>`, {
+                        onShow: (modal) => {
+                            modal.querySelector('#change-number-form').onsubmit = async function(e) {
+                                e.preventDefault();
+                                const newPhone = document.getElementById('new-phone-number').value;
+                                try {
+                                    const response = await fetch('/api/admin/user/phone', {
+                                        method: 'PUT',
+                                        headers: {
+                                            'Content-Type': 'application/json'
+                                        },
+                                        body: JSON.stringify({ phone: newPhone })
+                                    });
+                                    const data = await response.json();
+                                    if (data.success) {
+                                        showAdminAlert('Phone number changed successfully!', 'success');
+                                        adminProfilePhone.value = newPhone;
+                                    } else {
+                                        showAdminAlert(data.message || 'Failed to change phone number.', 'error');
+                                    }
+                                } catch (error) {
+                                    console.error('Error changing phone number:', error);
+                                    showAdminAlert('Error changing phone number.', 'error');
+                                }
+                                modal.style.display = 'none';
+                            };
+                        }
+                    });
+                };
+            }
+
+            // --- CHANGE PASSWORD ---
+            if (adminChangePasswordBtn) {
+                adminChangePasswordBtn.onclick = function() {
+                    showAdminModal('Change Password', `<form id='change-password-form'>
+                        <label>Current Password</label><br><input type='password' id='current-password' required style='width:100%;margin-bottom:10px;'><br>
+                        <label>New Password</label><br><input type='password' id='new-password' required style='width:100%;margin-bottom:10px;'><br>
+                        <label>Confirm New Password</label><br><input type='password' id='confirm-new-password' required style='width:100%;margin-bottom:10px;'><br>
+                        <button type='submit' style='background:#6a0dad;color:#fff;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;'>Change Password</button>
+                    </form>`, {
+                        onShow: (modal) => {
+                            modal.querySelector('#change-password-form').onsubmit = async function(e) {
+                                e.preventDefault();
+                                const currentPassword = document.getElementById('current-password').value;
+                                const newPassword = document.getElementById('new-password').value;
+                                const confirmNewPassword = document.getElementById('confirm-new-password').value;
+
+                                if (newPassword !== confirmNewPassword) {
+                                    showAdminAlert('New passwords do not match.', 'error');
+                                    return;
+                                }
+
+                                try {
+                                    const response = await fetch('/api/admin/user/password', {
+                                        method: 'PUT',
+                                        headers: {
+                                            'Content-Type': 'application/json'
+                                        },
+                                        body: JSON.stringify({
+                                            currentPassword: currentPassword,
+                                            newPassword: newPassword
+                                        })
+                                    });
+                                    const data = await response.json();
+                                    if (data.success) {
+                                        showAdminAlert('Password changed successfully!', 'success');
+                                    } else {
+                                        showAdminAlert(data.message || 'Failed to change password.', 'error');
+                                    }
+                                } catch (error) {
+                                    console.error('Error changing password:', error);
+                                    showAdminAlert('Error changing password.', 'error');
+                                }
+                                modal.style.display = 'none';
+                            };
+                        }
+                    });
+                };
+            }
+
+            // --- SIGN OUT ---
+            if (adminSignoutBtn) {
+                adminSignoutBtn.onclick = function() {
+                    showAdminModal('Sign Out', `<p>Are you sure you want to sign out?</p>
+                        <button id='confirm-signout-btn' style='background:#e74c3c;color:#fff;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;'>Sign Out</button>
+                    `, {
+                        onShow: (modal) => {
+                            modal.querySelector('#confirm-signout-btn').onclick = async function() {
+                                try {
+                                    const response = await fetch('/api/admin/auth/signout', {
+                                        method: 'POST'
+                                    });
+                                    const data = await response.json();
+                                    if (data.success) {
+                                        showAdminAlert('Signed out successfully!', 'success');
+                                        // Redirect to login page or clear session
+                                        window.location.href = 'login.html'; // Assuming login.html is the next page
+                                    } else {
+                                        showAdminAlert(data.message || 'Failed to sign out.', 'error');
+                                    }
+                                } catch (error) {
+                                    console.error('Error signing out:', error);
+                                    showAdminAlert('Error signing out.', 'error');
+                                }
+                                modal.style.display = 'none';
+                            };
+                        }
+                    });
+                };
+            }
         });
     </script>
 </body>
