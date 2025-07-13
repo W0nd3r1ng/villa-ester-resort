@@ -1,6 +1,6 @@
 // Clerk Panel UI Logic
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     // Elements
     const mainDashboardView = document.getElementById('main-dashboard-view');
     const addBookingBtn = document.getElementById('add-booking-btn');
@@ -788,6 +788,96 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => window.location.href = 'login.html', 800);
         });
     }
+
+    // --- Fetch and Render Customer List ---
+    async function fetchCustomers() {
+        try {
+            const response = await fetch('https://villa-ester-backend.onrender.com/api/users');
+            const data = await response.json();
+            if (data.success && Array.isArray(data.data)) {
+                return data.data;
+            } else {
+                return [];
+            }
+        } catch (err) {
+            console.error('Failed to fetch customers:', err);
+            return [];
+        }
+    }
+
+    function renderCustomerList(customers) {
+        const panel = document.getElementById('guest-management-panel');
+        let container = document.getElementById('customer-list-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'customer-list-container';
+            panel.appendChild(container);
+        }
+        container.innerHTML = '';
+        if (!customers.length) {
+            container.innerHTML = '<p style="text-align:center; color:#888;">No customers found.</p>';
+            return;
+        }
+        const table = document.createElement('table');
+        table.style.width = '100%';
+        table.style.borderCollapse = 'collapse';
+        table.innerHTML = `<thead><tr><th>Name</th><th>Email</th><th>Phone</th></tr></thead><tbody></tbody>`;
+        const tbody = table.querySelector('tbody');
+        customers.forEach(cust => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${cust.name || ''}</td><td>${cust.email || ''}</td><td>${cust.phone || ''}</td>`;
+            tbody.appendChild(tr);
+        });
+        container.appendChild(table);
+    }
+
+    // --- Fetch and Render Reviews ---
+    async function fetchReviews() {
+        try {
+            const response = await fetch('https://villa-ester-backend.onrender.com/api/reviews');
+            const data = await response.json();
+            if (data.success && Array.isArray(data.data)) {
+                return data.data;
+            } else {
+                return [];
+            }
+        } catch (err) {
+            console.error('Failed to fetch reviews:', err);
+            return [];
+        }
+    }
+
+    function renderReviews(reviews) {
+        const panel = document.getElementById('dashboard-overview-panel');
+        let container = document.getElementById('reviews-list-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'reviews-list-container';
+            panel.appendChild(container);
+        }
+        container.innerHTML = '';
+        if (!reviews.length) {
+            container.innerHTML = '<p style="text-align:center; color:#888;">No reviews yet.</p>';
+            return;
+        }
+        reviews.forEach(review => {
+            const div = document.createElement('div');
+            div.className = 'review-item';
+            div.style.marginBottom = '16px';
+            div.innerHTML = `<strong>${review.name || 'Guest'}</strong>: <span>${review.comment || ''}</span>`;
+            if (review.image) {
+                div.innerHTML += `<br><img src="${review.image}" alt="Review Image" style="max-width:80px;max-height:60px;border-radius:6px;margin-top:4px;">`;
+            }
+            container.appendChild(div);
+        });
+    }
+
+    // --- Update dashboard panels with live data on load ---
+    const customers = await fetchCustomers();
+    renderCustomerList(customers);
+    // Fetch and render reviews in Dashboard Overview panel
+    const reviews = await fetchReviews();
+    renderReviews(reviews);
 
     showDashboard();
 }); 

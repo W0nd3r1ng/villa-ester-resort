@@ -49,4 +49,14 @@ exports.changePassword = async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, message: 'Failed to change password', error: error.message });
   }
+};
+
+// Get all users (for admin/clerk dashboard)
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({}, 'name email phone');
+    res.json({ success: true, data: users });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to fetch users', error: error.message });
+  }
 }; 
