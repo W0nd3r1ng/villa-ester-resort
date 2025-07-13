@@ -11,6 +11,18 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Add root route
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Villa Ester Resort API is running!',
+    endpoints: {
+      rooms: '/api/rooms',
+      bookings: '/api/bookings',
+      recommendations: '/api/recommendations'
+    }
+  });
+});
+
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error('MongoDB connection error:', err));
