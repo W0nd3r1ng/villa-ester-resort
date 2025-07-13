@@ -778,19 +778,19 @@
             <div class="card">
                 <div class="icon"><i class="fas fa-home"></i></div>
                 <h3>Total Occupancy</h3>
-                <p>78% of rooms currently occupied</p>
+                <p id="dashboard-occupancy">Loading...</p>
                 <button>View Details</button>
             </div>
             <div class="card">
                 <div class="icon"><i class="fas fa-dollar-sign"></i></div>
                 <h3>Today's Revenue</h3>
-                <p>$4,850 from 12 bookings</p>
+                <p id="dashboard-revenue">Loading...</p>
                 <button>View Report</button>
             </div>
             <div class="card">
                 <div class="icon"><i class="fas fa-clipboard-list"></i></div>
                 <h3>Pending Bookings</h3>
-                <p>8 bookings awaiting confirmation</p>
+                <p id="dashboard-pending">Loading...</p>
                 <button>Review Now</button>
             </div>
             <div class="card">
@@ -809,31 +809,8 @@
                         <th>Status</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td>101</td>
-                        <td class="occupied">Occupied</td>
-                    </tr>
-                    <tr>
-                        <td>102</td>
-                        <td class="vacant">Vacant</td>
-                    </tr>
-                    <tr>
-                        <td>103</td>
-                        <td class="occupied">Occupied</td>
-                    </tr>
-                    <tr>
-                        <td>104</td>
-                        <td class="vacant">Vacant</td>
-                    </tr>
-                    <tr>
-                        <td>201</td>
-                        <td class="occupied">Occupied</td>
-                    </tr>
-                    <tr>
-                        <td>202</td>
-                        <td class="vacant">Vacant</td>
-                    </tr>
+                <tbody id="room-occupancy-tbody">
+                    <!-- Dynamic rows will be rendered by JS -->
                 </tbody>
             </table>
         </div>
@@ -1066,14 +1043,15 @@
           let occupancyPercent = total ? Math.round((occupied / total) * 100) : 0;
           let todayBookings = bookings.filter(b => (b.bookingDate || '').slice(0,10) === today).length;
           let todayRevenue = bookings.filter(b => (b.bookingDate || '').slice(0,10) === today).reduce((sum, b) => sum + (b.price || 0), 0);
-          document.querySelector('.dashboard-overview .card:nth-child(1) p').textContent = `${occupancyPercent}% of rooms currently occupied`;
-          document.querySelector('.dashboard-overview .card:nth-child(2) p').textContent = `₱${todayRevenue.toLocaleString()} from ${todayBookings} bookings`;
+          document.getElementById('dashboard-occupancy').textContent = `${occupancyPercent}% of rooms currently occupied`;
+          document.getElementById('dashboard-revenue').textContent = `₱${todayRevenue.toLocaleString()} from ${todayBookings} bookings`;
+          document.getElementById('dashboard-pending').textContent = `${bookings.filter(b => (b.status || '').toLowerCase() === 'pending').length} bookings awaiting confirmation`;
         }
 
         // --- Room Occupancy Table ---
         async function updateRoomOccupancyTable() {
           const occupancy = await fetchAPI('/api/admin/room-occupancy');
-          const tbody = document.querySelector('.room-occupancy-status tbody');
+          const tbody = document.getElementById('room-occupancy-tbody');
           tbody.innerHTML = '';
           occupancy.forEach(cottage => {
             const tr = document.createElement('tr');
