@@ -41,52 +41,33 @@
         }
         .sidebar-menu ul {
             list-style: none;
-            padding: 0;
+            padding-left: 0;
+            margin: 0;
         }
         .sidebar-menu li {
-            margin-bottom: 10px;
+            margin-bottom: 0;
         }
         .sidebar-menu a {
-            text-decoration: none;
-            color: #333;
-            padding: 10px 15px;
             display: flex;
             align-items: center;
-            border-radius: 5px;
+            padding: 10px 18px;
+            color: #6a0dad;
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: background 0.2s, color 0.2s;
         }
         .sidebar-menu a:hover, .sidebar-menu a.active {
-            background-color: #e0e0e0;
-            color: #6a0dad;
+            background: #ede9fe;
+            color: #4b0082;
         }
-        .sidebar-menu a i {
+        .sidebar-menu i {
             margin-right: 10px;
+            font-size: 1.1em;
         }
-        .settings-section {
-            margin-top: auto;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-        }
-        .admin-user-section {
-            display: flex;
-            align-items: center;
-            padding: 20px;
-            border-top: 1px solid #eee;
-            margin-top: auto; /* Pushes the section to the bottom */
-        }
-        .admin-user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            margin-right: 10px;
-        }
-        .admin-user-name {
-            font-weight: bold;
-            margin: 0;
-        }
-        .admin-user-role {
-            color: #777;
-            font-size: 0.9em;
-            margin: 0;
+        .sidebar-settings-heading {
+            pointer-events: none;
         }
         .main-content {
             flex-grow: 1;
@@ -842,14 +823,10 @@
                 <li><a href="#" data-panel="bookings-panel"><i class="fas fa-calendar-alt"></i> Bookings</a></li>
                 <li><a href="#" data-panel="customers-panel"><i class="fas fa-users"></i> Customers</a></li>
                 <li><a href="#" data-panel="analytics-panel"><i class="fas fa-chart-bar"></i> Analytics</a></li>
-            </ul>
-        </nav>
-        <div class="sidebar-settings">
-            <h4>SETTINGS</h4>
-            <ul>
+                <li class="sidebar-settings-heading" style="margin-top:40px; margin-left:18px; font-size:1rem; font-weight:700; letter-spacing:1px; color:#222; cursor:default;">SETTINGS</li>
                 <li><a href="#" data-panel="admin-account-panel"><i class="fas fa-user-circle"></i> Account</a></li>
             </ul>
-        </div>
+        </nav>
         <div class="admin-user-section">
             <img src="https://via.placeholder.com/40" alt="Admin User" class="admin-user-avatar">
             <div>
