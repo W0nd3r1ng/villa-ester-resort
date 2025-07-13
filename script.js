@@ -89,7 +89,7 @@ const bookingModal = document.getElementById('booking-modal');
 const closeBookingModalBtn = document.getElementById('close-booking-modal');
 const modalCancelBtn = document.getElementById('modal-cancel-btn');
 
-function openBookingModal() {
+function openMainBookingModal() {
     bookingModal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
 }
@@ -98,7 +98,7 @@ function closeBookingModal() {
     document.body.style.overflow = '';
 }
 if (openBookingModalBtn && bookingModal && closeBookingModalBtn) {
-    openBookingModalBtn.addEventListener('click', openBookingModal);
+    openBookingModalBtn.addEventListener('click', openMainBookingModal);
     closeBookingModalBtn.addEventListener('click', closeBookingModal);
 }
 if (modalCancelBtn) {
@@ -108,6 +108,26 @@ if (modalCancelBtn) {
 bookingModal && bookingModal.addEventListener('click', function(e) {
     if (e.target === bookingModal) closeBookingModal();
 });
+
+// --- Modal Booking Type Change Handler ---
+const modalBookingTypeSelect = document.getElementById('modal-booking-type');
+const modalDaytourFields = document.getElementById('modal-daytour-fields');
+const modalOvernightFields = document.getElementById('modal-overnight-fields');
+
+if (modalBookingTypeSelect) {
+    modalBookingTypeSelect.addEventListener('change', function() {
+        if (this.value === 'daytour') {
+            modalDaytourFields.style.display = 'block';
+            modalOvernightFields.style.display = 'none';
+        } else if (this.value === 'overnight') {
+            modalDaytourFields.style.display = 'none';
+            modalOvernightFields.style.display = 'block';
+        } else {
+            modalDaytourFields.style.display = 'none';
+            modalOvernightFields.style.display = 'none';
+        }
+    });
+}
 
 // --- Proof of Payment Image Preview ---
 const proofInput = document.getElementById('modal-proof');
