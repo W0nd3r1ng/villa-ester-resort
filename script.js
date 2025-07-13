@@ -113,3 +113,88 @@ if (modalBookingForm) {
         }
     });
 } 
+
+// --- Review Modal Logic ---
+const openReviewModalBtn = document.getElementById('open-review-modal');
+const reviewModal = document.getElementById('review-modal');
+const closeReviewModalBtn = document.getElementById('close-review-modal');
+const reviewForm = document.getElementById('review-form');
+const reviewsContainer = document.getElementById('reviews-container');
+
+function openReviewModal() {
+    reviewModal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+function closeReviewModal() {
+    reviewModal.style.display = 'none';
+    document.body.style.overflow = '';
+}
+if (openReviewModalBtn && reviewModal && closeReviewModalBtn) {
+    openReviewModalBtn.addEventListener('click', openReviewModal);
+    closeReviewModalBtn.addEventListener('click', closeReviewModal);
+}
+reviewModal && reviewModal.addEventListener('click', function(e) {
+    if (e.target === reviewModal) closeReviewModal();
+});
+
+// --- Submit Review ---
+if (reviewForm) {
+    reviewForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const name = document.getElementById('review-name').value.trim();
+        const comment = document.getElementById('review-comment').value.trim();
+        const image = document.getElementById('review-image').value.trim() || 'reviewer1.jpg';
+        const reviewData = { name, comment, image };
+        try {
+            const response = await fetch('https://villa-ester-backend.onrender.com/api/reviews', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(reviewData)
+            });
+            if (response.ok) {
+                alert('Thank you for your review!');
+                reviewForm.reset();
+                closeReviewModal();
+                fetchAndDisplayReviews();
+            } else {
+                const error = await response.json();
+                alert('Failed to submit review: ' + (error.message || 'Unknown error'));
+            }
+        } catch (err) {
+            alert('Failed to submit review: ' + err.message);
+        }
+    });
+}
+
+// --- Fetch and Display Reviews ---
+async function fetchAndDisplayReviews() {
+    if (!reviewsContainer) return;
+    try {
+        const response = await fetch('https://villa-ester-backend.onrender.com/api/reviews');
+        const data = await response.json();
+        if (data.success && Array.isArray(data.data)) {
+            reviewsContainer.innerHTML = data.data.map(review => `
+                <div class="review-card">
+                    <div class="review-header">
+                        <div class="reviewer-info">
+                            <img src="images/${review.image || 'reviewer1.jpg'}" alt="${review.name}" class="reviewer-avatar">
+                            <div>
+                                <h3 class="reviewer-name">${review.name}</h3>
+                                <div class="review-stars">★★★★★</div>
+                            </div>
+                        </div>
+                        <div class="review-date">${new Date(review.date).toLocaleDateString()}</div>
+                    </div>
+                    <p class="review-text">${review.comment}</p>
+                </div>
+            `).join('');
+        } else {
+            reviewsContainer.innerHTML = '<p>No reviews yet. Be the first to share your experience!</p>';
+        }
+    } catch (err) {
+        reviewsContainer.innerHTML = '<p>Failed to load reviews.</p>';
+    }
+}
+
+// Fetch reviews on page load
+fetchAndDisplayReviews(); 

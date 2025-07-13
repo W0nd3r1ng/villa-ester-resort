@@ -105,48 +105,33 @@
     </section>
     <section class="reviews-section">
         <h2>What Our Guests Say</h2>
-        <div class="reviews-container">
-            <div class="review-card">
-                <div class="review-header">
-                    <div class="reviewer-info">
-                        <img src="images/reviewer1.jpg" alt="Sarah Johnson" class="reviewer-avatar">
-                        <div>
-                            <h3 class="reviewer-name">Sarah Johnson</h3>
-                            <div class="review-stars">★★★★★</div>
-                        </div>
-                    </div>
-                    <div class="review-date">March 15, 2024</div>
-                </div>
-                <p class="review-text">"Absolutely amazing experience! The ocean view from our room was breathtaking, and the staff went above and beyond to make our stay memorable. Will definitely come back!"</p>
-            </div>
-            <div class="review-card">
-                <div class="review-header">
-                    <div class="reviewer-info">
-                        <img src="images/reviewer2.jpg" alt="Michael Chen" class="reviewer-avatar">
-                        <div>
-                            <h3 class="reviewer-name">Michael Chen</h3>
-                            <div class="review-stars">★★★★★</div>
-                        </div>
-                    </div>
-                    <div class="review-date">February 28, 2024</div>
-                </div>
-                <p class="review-text">"The AI recommendations were spot on! We got the perfect room for our family vacation. The amenities are top-notch and the location is perfect for exploring the area."</p>
-            </div>
-            <div class="review-card">
-                <div class="review-header">
-                    <div class="reviewer-info">
-                        <img src="images/reviewer3.jpg" alt="Emma Rodriguez" class="reviewer-avatar">
-                        <div>
-                            <h3 class="reviewer-name">Emma Rodriguez</h3>
-                            <div class="review-stars">★★★★★</div>
-                        </div>
-                    </div>
-                    <div class="review-date">February 10, 2024</div>
-                </div>
-                <p class="review-text">"The booking process was seamless and the staff was incredibly helpful. The resort's attention to detail and customer service is outstanding. Highly recommend!"</p>
-            </div>
+        <div class="reviews-container" id="reviews-container">
+            <!-- Reviews will be dynamically loaded here -->
         </div>
+        <button id="open-review-modal" class="btn btn-primary" style="margin: 24px auto 0 auto; display: block;">Share Your Experience</button>
     </section>
+    <!-- Review Modal -->
+    <div id="review-modal" class="booking-modal-overlay" style="display:none; align-items: flex-start;">
+        <div class="booking-modal-content" style="max-width: 400px;">
+            <span class="close-booking-modal" id="close-review-modal">&times;</span>
+            <h2>Share Your Experience</h2>
+            <form id="review-form">
+                <div class="modal-form-group">
+                    <label for="review-name">Your Name</label>
+                    <input type="text" id="review-name" placeholder="Enter your name" required>
+                </div>
+                <div class="modal-form-group">
+                    <label for="review-comment">Your Comment</label>
+                    <textarea id="review-comment" placeholder="Share your experience..." rows="4" required style="width:100%;padding:10px;"></textarea>
+                </div>
+                <div class="modal-form-group">
+                    <label for="review-image">Profile Image (optional, filename in images/)</label>
+                    <input type="text" id="review-image" placeholder="e.g. reviewer1.jpg">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%;margin-top:10px;">Submit Review</button>
+            </form>
+        </div>
+    </div>
     <footer class="footer" id="contact">
         <div class="footer-content">
             <div class="footer-section">
