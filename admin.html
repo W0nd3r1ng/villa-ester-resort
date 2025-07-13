@@ -838,20 +838,17 @@
         </div>
         <nav class="sidebar-menu">
             <ul>
-                <li><a href="#" class="active" data-panel="dashboard-panel"><i class="fas fa-th-large"></i> Dashboard</a></li>
-                <li><a href="#" id="bookings-sidebar-link" data-panel="bookings-panel"><i class="fas fa-calendar-alt"></i> Bookings</a></li>
+                <li><a href="#" data-panel="dashboard-panel"><i class="fas fa-th-large"></i> Dashboard</a></li>
+                <li><a href="#" data-panel="bookings-panel"><i class="fas fa-calendar-alt"></i> Bookings</a></li>
                 <li><a href="#" data-panel="customers-panel"><i class="fas fa-users"></i> Customers</a></li>
                 <li><a href="#" data-panel="analytics-panel"><i class="fas fa-chart-bar"></i> Analytics</a></li>
-                <li><a href="#" data-panel="admin-account-panel"><i class="fas fa-user-circle"></i> Account</a></li>
             </ul>
         </nav>
-        <div class="settings-section">
-            <p>SETTINGS</p>
-            <nav class="sidebar-menu">
-                <ul>
-                    <li><a href="#"><i class="fas fa-user-circle"></i> Account</a></li>
-                </ul>
-            </nav>
+        <div class="sidebar-settings">
+            <h4>SETTINGS</h4>
+            <ul>
+                <li><a href="#" data-panel="admin-account-panel"><i class="fas fa-user-circle"></i> Account</a></li>
+            </ul>
         </div>
         <div class="admin-user-section">
             <img src="https://via.placeholder.com/40" alt="Admin User" class="admin-user-avatar">
@@ -1026,7 +1023,11 @@
             <h2 class="settings-title">Profile information</h2>
             <div class="settings-avatar-row">
                 <div class="profile-avatar">
-                    <span class="material-icons">person</span>
+                    <!-- Use SVG user icon instead of Material Icons -->
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="12" cy="12" r="12" fill="#ede9fe"/>
+                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="#6a0dad"/>
+                    </svg>
                 </div>
                 <button class="btn btn-secondary" id="admin-upload-photo-btn">Upload photo</button>
             </div>
