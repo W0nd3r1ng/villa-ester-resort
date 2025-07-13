@@ -1,5 +1,24 @@
 const Booking = require('../models/Booking');
 const { validationResult } = require('express-validator');
+const path = require('path');
+const fs = require('fs');
+const multer = require('multer');
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const dir = path.join(__dirname, '../../uploads/proof');
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    cb(null, dir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + '-' + file.originalname.replace(/\s+/g, '_'));
+  }
+});
+const upload = multer({ storage });
+
+// Export the multer middleware for use in routes
+exports.uploadProof = upload.single('proofOfPayment');
 
 /**
  * Get all bookings with optional filtering and pagination
@@ -112,6 +131,12 @@ exports.createBooking = async (req, res) => {
       });
     }
 
+    // If file uploaded, save its path
+    let proofOfPaymentUrl = '';
+    if (req.file) {
+      proofOfPaymentUrl = `/uploads/proof/${req.file.filename}`;
+    }
+
     const {
       userId,
       serviceId,
@@ -121,23 +146,13 @@ exports.createBooking = async (req, res) => {
       numberOfPeople,
       specialRequests,
       contactPhone,
-      contactEmail
+      contactEmail,
+      notes,
+      fullName,
+      cottageType
     } = req.body;
 
-    // Check if the time slot is available
-    const existingBooking = await Booking.findOne({
-      serviceId,
-      bookingDate,
-      bookingTime,
-      status: { $nin: ['cancelled', 'rejected'] }
-    });
-
-    if (existingBooking) {
-      return res.status(409).json({
-        success: false,
-        message: 'This time slot is already booked'
-      });
-    }
+    // Check if the time slot is available (skip for now for walk-in)
 
     // Create new booking
     const booking = new Booking({
@@ -150,6 +165,10 @@ exports.createBooking = async (req, res) => {
       specialRequests,
       contactPhone,
       contactEmail,
+      notes,
+      fullName,
+      cottageType,
+      proofOfPayment: proofOfPaymentUrl,
       status: 'pending',
       createdAt: new Date()
     });

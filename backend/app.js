@@ -57,6 +57,7 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/cottages', cottageRoutes);
 app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/uploads', express.static('uploads'));
 
 // Socket.IO connection handling
 io.on('connection', (socket) => {

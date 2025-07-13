@@ -13,21 +13,38 @@ document.addEventListener('DOMContentLoaded', function() {
     const quickBookingPanel = document.getElementById('quick-booking-panel');
     const guestManagementPanel = document.getElementById('guest-management-panel');
 
-    // Example booking data (replace with actual backend data later)
-    const bookingsData = [
-        { id: 1, guest: 'Smith, John', room: '201', roomType: 'Ocean View Suite', eta: '2:00 PM', adults: 2, children: 1 },
-        { id: 2, guest: 'Garcia, Maria', room: '105', roomType: 'Garden Villa', eta: '3:30 PM', adults: 1, children: 0 },
-        { id: 3, guest: 'Johnson, Robert', room: '302', roomType: 'Deluxe Room', eta: '4:00 PM', adults: 2, children: 0 },
-        { id: 4, guest: 'Lee, Jennifer', room: '401', roomType: 'Family Suite', eta: '1:45 PM', adults: 2, children: 2 },
-        { id: 5, guest: 'Patel, Anika', room: '210', roomType: 'Ocean View Suite', eta: '5:00 PM', adults: 1, children: 0 },
-        { id: 6, guest: 'Nguyen, Minh', room: '108', roomType: 'Garden Villa', eta: '6:15 PM', adults: 2, children: 0 }
-    ];
+    // --- Socket.IO for real-time updates ---
+    const socket = io('https://villa-ester-backend.onrender.com', {
+      transports: ['websocket', 'polling']
+    });
 
-    // Example booking data (replace with actual backend data later)
-    const pendingBookingsData = [
-        { id: 7, guest: 'Brown, David', roomType: 'Standard Room', checkIn: '2024-08-01', checkOut: '2024-08-05', adults: 2, children: 0, status: 'Pending' },
-        { id: 8, guest: 'Miller, Sarah', roomType: 'Deluxe Room', checkIn: '2024-08-03', checkOut: '2024-08-07', adults: 1, children: 0, status: 'Pending' }
-    ];
+    let bookingsData = [];
+
+    // Fetch bookings from backend
+    async function fetchBookings() {
+        try {
+            const response = await fetch('https://villa-ester-backend.onrender.com/api/bookings');
+            const data = await response.json();
+            if (data.success && Array.isArray(data.data)) {
+                bookingsData = data.data;
+            } else if (Array.isArray(data)) {
+                bookingsData = data; // fallback for old API
+            } else {
+                bookingsData = [];
+            }
+        } catch (err) {
+            console.error('Failed to fetch bookings:', err);
+            bookingsData = [];
+        }
+    }
+
+    // Listen for real-time booking events
+    socket.on('booking-created', (data) => {
+        fetchBookings().then(renderBookingList);
+    });
+    socket.on('booking-updated', (data) => {
+        fetchBookings().then(renderBookingList);
+    });
 
     // --- Walk-in Guest List State ---
     let walkinGuests = [
@@ -116,7 +133,96 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Initial display of the dashboard
+    // --- Dashboard Data ---
+    let cottagesData = [];
+
+    // Fetch cottages from backend
+    async function fetchCottages() {
+        try {
+            const response = await fetch('https://villa-ester-backend.onrender.com/api/cottages');
+            const data = await response.json();
+            if (data.success && Array.isArray(data.data)) {
+                cottagesData = data.data;
+            } else if (Array.isArray(data)) {
+                cottagesData = data;
+            } else {
+                cottagesData = [];
+            }
+        } catch (err) {
+            console.error('Failed to fetch cottages:', err);
+            cottagesData = [];
+        }
+    }
+
+    // Update dashboard overview
+    function updateDashboardOverview() {
+        // Calculate occupancy
+        const today = new Date().toISOString().slice(0, 10);
+        let occupiedCount = 0;
+        let todayRevenue = 0;
+        let todayBookings = 0;
+        const occupiedCottageIds = new Set();
+
+        bookingsData.forEach(booking => {
+            // Check if booking is for today and not cancelled
+            const bookingDate = (booking.bookingDate || '').slice(0, 10);
+            if ((booking.status !== 'cancelled' && booking.status !== 'rejected') && bookingDate === today) {
+                occupiedCottageIds.add(booking.cottageId || booking.cottage || booking.cottageName);
+                todayRevenue += booking.price || 0;
+                todayBookings++;
+            }
+        });
+        occupiedCount = occupiedCottageIds.size;
+        const totalCottages = cottagesData.length;
+        const occupancy = totalCottages ? Math.round((occupiedCount / totalCottages) * 100) : 0;
+
+        // Update DOM
+        const occupancyCard = document.querySelector('#dashboard-overview-panel .card:nth-child(1) p');
+        const revenueCard = document.querySelector('#dashboard-overview-panel .card:nth-child(2) p');
+        if (occupancyCard) {
+            occupancyCard.textContent = `${occupancy}% of rooms currently occupied`;
+        }
+        if (revenueCard) {
+            revenueCard.textContent = `₱${todayRevenue.toLocaleString()} from ${todayBookings} bookings`;
+        }
+    }
+
+    // Update room occupancy status table
+    function updateRoomOccupancyTable() {
+        const tableBody = document.querySelector('.room-occupancy-status tbody');
+        if (!tableBody) return;
+        tableBody.innerHTML = '';
+        const today = new Date().toISOString().slice(0, 10);
+        const occupiedCottageIds = new Set();
+        bookingsData.forEach(booking => {
+            const bookingDate = (booking.bookingDate || '').slice(0, 10);
+            if ((booking.status !== 'cancelled' && booking.status !== 'rejected') && bookingDate === today) {
+                occupiedCottageIds.add(booking.cottageId || booking.cottage || booking.cottageName);
+            }
+        });
+        cottagesData.forEach(cottage => {
+            const isOccupied = occupiedCottageIds.has(cottage._id) || occupiedCottageIds.has(cottage.name);
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${cottage.name || cottage._id}</td>
+                <td class="${isOccupied ? 'occupied' : 'vacant'}">${isOccupied ? 'Occupied' : 'Vacant'}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+
+    // Update dashboard and table after fetching data
+    async function updateDashboardAndTable() {
+        await Promise.all([fetchBookings(), fetchCottages()]);
+        updateDashboardOverview();
+        updateRoomOccupancyTable();
+    }
+
+    // Update in real time
+    socket.on('booking-created', updateDashboardAndTable);
+    socket.on('booking-updated', updateDashboardAndTable);
+
+    // On dashboard load, update with real data
     function showDashboard() {
         mainDashboardView.style.display = 'flex';
         const defaultLink = document.querySelector('.sidebar-nav ul li a.active');
@@ -127,6 +233,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (defaultPanel) {
             showPanel(defaultPanel, null);
         }
+        updateDashboardAndTable();
     }
 
     function renderBookingList() {
@@ -135,29 +242,47 @@ document.addEventListener('DOMContentLoaded', function() {
 
         container.innerHTML = '';
 
-        if (!bookingsData.length) {
+        // Get today's date in YYYY-MM-DD
+        const today = new Date().toISOString().slice(0, 10);
+        // Filter bookings for today and not cancelled/rejected
+        const todaysArrivals = bookingsData.filter(booking => {
+            const bookingDate = (booking.bookingDate || '').slice(0, 10);
+            return (
+                bookingDate === today &&
+                booking.status !== 'cancelled' &&
+                booking.status !== 'rejected'
+            );
+        });
+
+        if (!todaysArrivals.length) {
             container.innerHTML = '<p style="text-align:center; color:#888;">No arrivals for today.</p>';
             return;
         }
 
-        bookingsData.forEach(booking => {
+        todaysArrivals.forEach(booking => {
             const arrivalItem = document.createElement('div');
             arrivalItem.classList.add('arrival-item');
 
-            const paxString = booking.children > 0 ? `${booking.adults} Adults, ${booking.children} Child${booking.children > 1 ? 'ren' : ''}` : `${booking.adults} Adult${booking.adults > 1 ? 's' : ''}`;
+            const guestName = booking.guestName || booking.name || booking.contactName || 'Guest';
+            const room = booking.cottageName || booking.room || booking.cottage || 'N/A';
+            const roomType = booking.cottageType || booking.roomType || 'Cottage';
+            const eta = booking.bookingTime || booking.eta || '-';
+            const adults = booking.adults || booking.numberOfPeople || 1;
+            const children = booking.children || 0;
+            const paxString = children > 0 ? `${adults} Adults, ${children} Child${children > 1 ? 'ren' : ''}` : `${adults} Adult${adults > 1 ? 's' : ''}`;
 
             arrivalItem.innerHTML = `
                 <div class="arrival-details">
                     <i class="material-icons person-icon">person</i>
                     <div class="guest-info">
-                        <span class="guest-name">${booking.guest}</span>
+                        <span class="guest-name">${guestName}</span>
                     </div>
                     <div class="room-details">
-                        <span class="room-number-text">Room ${booking.room}</span>
-                        <span class="room-type-text">${booking.roomType}</span>
+                        <span class="room-number-text">${room}</span>
+                        <span class="room-type-text">${roomType}</span>
                     </div>
                     <div class="booking-info">
-                        <span class="eta">ETA: ${booking.eta}</span>
+                        <span class="eta">ETA: ${eta}</span>
                         <span class="pax">${paxString}</span>
                     </div>
                 </div>
@@ -170,86 +295,82 @@ document.addEventListener('DOMContentLoaded', function() {
             container.appendChild(arrivalItem);
         });
 
-        document.querySelectorAll('.action-btn.check-in-btn').forEach(btn => {
-            btn.onclick = function() {
-                const id = +this.getAttribute('data-id');
-                alert('Check-in for booking ID: ' + id);
-            };
-        });
-        document.querySelectorAll('.action-btn.info-btn').forEach(btn => {
-            btn.onclick = function() {
-                const id = +this.getAttribute('data-id');
-                alert('View info for booking ID: ' + id);
-            };
-        });
-        document.querySelectorAll('.action-btn.more-options-btn').forEach(btn => {
-            btn.onclick = function() {
-                const id = +this.getAttribute('data-id');
-                alert('More options for booking ID: ' + id);
-            };
-        });
-
-        document.querySelectorAll('.booking-table .btn-confirm, .booking-table .btn-delete').forEach(btn => {
-            btn.onclick = null;
-        });
+        // Optionally, update the header count
+        const guestListHeader = document.querySelector('.guest-list-header');
+        if (guestListHeader) {
+            guestListHeader.textContent = `Today's Arrivals (${todaysArrivals.length})`;
+        }
     }
 
+    // In renderPendingBookingList, show proof of payment image if available
     function renderPendingBookingList() {
         const container = document.getElementById('pending-bookings-container');
         const noBookingsMessage = document.getElementById('no-pending-bookings');
         if (!container || !noBookingsMessage) return;
-
         container.innerHTML = '';
-        if (!pendingBookingsData.length) {
+        // Filter for pending bookings
+        const pendingBookings = bookingsData.filter(booking => booking.status === 'pending');
+        if (!pendingBookings.length) {
             noBookingsMessage.style.display = 'block';
             return;
         } else {
             noBookingsMessage.style.display = 'none';
         }
-
-        pendingBookingsData.forEach(booking => {
-            const bookingItem = document.createElement('div');
-            bookingItem.classList.add('arrival-item'); // Reusing some styling
-
-            bookingItem.innerHTML = `
-                <div class="arrival-details">
-                    <i class="material-icons person-icon">person</i>
-                    <div class="guest-info">
-                        <span class="guest-name">${booking.guest}</span>
-                    </div>
-                    <div class="room-details">
-                        <span class="room-number-text">${booking.roomType}</span>
-                        <span class="room-type-text">Check-in: ${booking.checkIn}</span>
-                        <span class="room-type-text">Check-out: ${booking.checkOut}</span>
-                    </div>
-                    <div class="booking-info">
-                        <span class="pax">${booking.adults} Adults, ${booking.children} Children</span>
-                        <span class="status">Status: ${booking.status}</span>
-                    </div>
+        pendingBookings.forEach(booking => {
+            const item = document.createElement('div');
+            item.classList.add('pending-booking-item');
+            const guestName = booking.guestName || booking.name || booking.contactName || 'Guest';
+            const roomType = booking.cottageType || booking.roomType || 'Cottage';
+            const checkin = booking.checkinDate || booking.bookingDate || '-';
+            const checkout = booking.checkoutDate || '-';
+            const adults = booking.adults || booking.numberOfPeople || 1;
+            const children = booking.children || 0;
+            const proofUrl = booking.proofOfPayment ? (booking.proofOfPayment.startsWith('http') ? booking.proofOfPayment : `https://villa-ester-backend.onrender.com${booking.proofOfPayment}`) : '';
+            item.innerHTML = `
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <i class="material-icons">person</i>
+                    <span style="font-weight:600;">${guestName}</span>
                 </div>
-                <div class="arrival-actions">
-                    <button class="action-btn check-in-btn approve-btn" data-id="${booking.id}" title="Approve"><i class="material-icons">check_circle</i> Approve</button>
-                    <button class="action-btn info-btn reject-btn" data-id="${booking.id}" title="Reject"><i class="material-icons">cancel</i> Reject</button>
+                <div style="margin-left:32px;min-width:180px;">${roomType}<br><span style="font-size:0.95em;color:#888;">Check-in: ${checkin}<br>Check-out: ${checkout}</span></div>
+                <div style="margin-left:32px;min-width:120px;">${adults} Adult${adults>1?'s':''}, ${children} Child${children!==1?'ren':''}</div>
+                <div style="margin-left:32px;min-width:120px;">Status: <span style="font-weight:600;">${booking.status.charAt(0).toUpperCase()+booking.status.slice(1)}</span></div>
+                <div style="margin-left:32px;min-width:120px;">
+                    ${proofUrl ? `<a href="${proofUrl}" target="_blank" title="View Proof of Payment"><img src="${proofUrl}" alt="Proof of Payment" style="max-width:60px;max-height:40px;border-radius:4px;box-shadow:0 1px 4px #ccc;vertical-align:middle;"></a>` : '<span style="color:#888;font-size:0.95em;">No proof uploaded</span>'}
+                </div>
+                <div style="margin-left:auto;display:flex;gap:16px;">
+                    <button class="btn-approve" title="Approve" style="color:#43a047;background:none;border:none;cursor:pointer;font-size:1.1em;display:flex;align-items:center;"><i class="material-icons">check_circle</i> Approve</button>
+                    <button class="btn-reject" title="Reject" style="color:#1976d2;background:none;border:none;cursor:pointer;font-size:1.1em;display:flex;align-items:center;"><i class="material-icons">cancel</i> Reject</button>
                 </div>
             `;
-            container.appendChild(bookingItem);
+            // Approve action
+            item.querySelector('.btn-approve').onclick = async () => {
+                await updateBookingStatus(booking._id, 'confirmed');
+            };
+            // Reject action
+            item.querySelector('.btn-reject').onclick = async () => {
+                await updateBookingStatus(booking._id, 'rejected');
+            };
+            container.appendChild(item);
         });
+    }
 
-        // Add event listeners for approve/reject buttons
-        document.querySelectorAll('.approve-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const id = +this.getAttribute('data-id');
-                alert('Approve booking ID: ' + id);
-                // Implement actual approval logic here
+    async function updateBookingStatus(bookingId, status) {
+        try {
+            const response = await fetch(`https://villa-ester-backend.onrender.com/api/bookings/${bookingId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status })
             });
-        });
-        document.querySelectorAll('.reject-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const id = +this.getAttribute('data-id');
-                alert('Reject booking ID: ' + id);
-                // Implement actual rejection logic here
-            });
-        });
+            if (response.ok) {
+                await fetchBookings();
+                renderPendingBookingList();
+                renderBookingList(); // update arrivals too
+            } else {
+                alert('Failed to update booking status.');
+            }
+        } catch (err) {
+            alert('Error updating booking: ' + err.message);
+        }
     }
 
     // --- Utility Functions ---
@@ -308,37 +429,79 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => { alert.style.display = 'none'; }, 2200);
     }
 
-    // --- Booking Form Submission ---
+    // --- Quick Booking Form Submission ---
     const quickBookingForm = document.querySelector('.quick-booking-form');
+    const quickBookingAlert = document.getElementById('quick-booking-alert');
     if (quickBookingForm) {
-        quickBookingForm.addEventListener('submit', function(e) {
+        quickBookingForm.addEventListener('submit', async function(e) {
             e.preventDefault();
-            // Validate fields
-            const name = document.getElementById('qb-full-name').value.trim();
+            // Collect form data
+            const fullName = document.getElementById('qb-full-name').value.trim();
             const phone = document.getElementById('qb-phone').value.trim();
+            const email = document.getElementById('qb-email').value.trim();
+            const specialRequests = document.getElementById('qb-special-requests').value.trim();
             const bookingType = document.getElementById('qb-booking-type').value;
             const cottageType = document.getElementById('qb-cottage-type').value;
-            let date = '';
+            let bookingDate = '';
+            let checkinDate = '';
+            let checkoutDate = '';
             if (bookingType === 'daytour') {
-                date = document.getElementById('qb-schedule-date').value;
-                if (!date) return showAlert('Please select a schedule date.', 'error');
-                date = `${date} (8am–6pm)`;
+                bookingDate = document.getElementById('qb-schedule-date').value;
             } else if (bookingType === 'overnight') {
-                const checkin = document.getElementById('qb-checkin-date').value;
-                const checkout = document.getElementById('qb-checkout-date').value;
-                if (!checkin || !checkout) return showAlert('Please select check-in and check-out dates.', 'error');
-                date = `${checkin} to ${checkout}`;
+                checkinDate = document.getElementById('qb-checkin-date').value;
+                checkoutDate = document.getElementById('qb-checkout-date').value;
             }
-            if (!name) return showAlert('Full Name is required.', 'error');
-            if (!phone) return showAlert('Phone Number is required.', 'error');
-            if (!bookingType) return showAlert('Booking Type is required.', 'error');
-            if (!cottageType) return showAlert('Cottage Type is required.', 'error');
-            // Add to walk-in guest list
-            walkinGuests.unshift({ name, cottage: cottageType.charAt(0).toUpperCase() + cottageType.slice(1).replace('cottage',' Cottage'), bookingType: bookingType === 'daytour' ? 'Day Tour' : 'Overnight Stay', date });
-            renderWalkinGuestList();
-            quickBookingForm.reset();
-            // Show success
-            showAlert('Walk-in booking added!', 'success');
+            const adults = parseInt(document.getElementById('qb-adults').value, 10) || 1;
+            const children = parseInt(document.getElementById('qb-children').value, 10) || 0;
+            // Prepare booking data
+            const bookingData = {
+                name: fullName,
+                contactPhone: phone,
+                contactEmail: email,
+                specialRequests,
+                bookingType,
+                cottageType,
+                bookingDate: bookingDate || checkinDate,
+                checkinDate,
+                checkoutDate,
+                adults,
+                children,
+                numberOfPeople: adults + children,
+                status: 'pending',
+                createdAt: new Date()
+            };
+            try {
+                const response = await fetch('https://villa-ester-backend.onrender.com/api/bookings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(bookingData)
+                });
+                if (response.ok) {
+                    quickBookingForm.reset();
+                    if (quickBookingAlert) {
+                        quickBookingAlert.style.display = 'block';
+                        quickBookingAlert.style.color = '#4CAF50';
+                        quickBookingAlert.textContent = 'Booking successful!';
+                        setTimeout(() => { quickBookingAlert.style.display = 'none'; }, 3000);
+                    }
+                    // Optionally, switch to Guest Details tab or update guest list
+                } else {
+                    const error = await response.json();
+                    if (quickBookingAlert) {
+                        quickBookingAlert.style.display = 'block';
+                        quickBookingAlert.style.color = '#dc3545';
+                        quickBookingAlert.textContent = 'Booking failed: ' + (error.message || 'Unknown error');
+                        setTimeout(() => { quickBookingAlert.style.display = 'none'; }, 4000);
+                    }
+                }
+            } catch (err) {
+                if (quickBookingAlert) {
+                    quickBookingAlert.style.display = 'block';
+                    quickBookingAlert.style.color = '#dc3545';
+                    quickBookingAlert.textContent = 'Booking failed: ' + err.message;
+                    setTimeout(() => { quickBookingAlert.style.display = 'none'; }, 4000);
+                }
+            }
         });
     }
 
@@ -406,6 +569,45 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('close-dashboard-info-modal').onclick = function() {
             modal.style.display = 'none';
         };
+    }
+
+    // Print Reports: Print today's arrivals as a log book
+    function printTodaysArrivals() {
+        // Get today's arrivals
+        const today = new Date().toISOString().slice(0, 10);
+        const todaysArrivals = bookingsData.filter(booking => {
+            const bookingDate = (booking.bookingDate || '').slice(0, 10);
+            return (
+                bookingDate === today &&
+                booking.status !== 'cancelled' &&
+                booking.status !== 'rejected'
+            );
+        });
+        let printWindow = window.open('', '', 'width=900,height=700');
+        printWindow.document.write('<html><head><title>Today\'s Arrivals Log Book</title>');
+        printWindow.document.write('<style>body{font-family:sans-serif;} table{width:100%;border-collapse:collapse;} th,td{border:1px solid #ccc;padding:8px;text-align:left;} th{background:#f0f0f0;}</style>');
+        printWindow.document.write('</head><body>');
+        printWindow.document.write('<h2>Today\'s Arrivals Log Book</h2>');
+        printWindow.document.write('<table><thead><tr><th>Guest Name</th><th>Room</th><th>Type</th><th>ETA</th><th>Pax</th></tr></thead><tbody>');
+        todaysArrivals.forEach(booking => {
+            const guestName = booking.guestName || booking.name || booking.contactName || 'Guest';
+            const room = booking.cottageName || booking.room || booking.cottage || 'N/A';
+            const roomType = booking.cottageType || booking.roomType || 'Cottage';
+            const eta = booking.bookingTime || booking.eta || '-';
+            const adults = booking.adults || booking.numberOfPeople || 1;
+            const children = booking.children || 0;
+            const paxString = children > 0 ? `${adults} Adults, ${children} Child${children > 1 ? 'ren' : ''}` : `${adults} Adult${adults > 1 ? 's' : ''}`;
+            printWindow.document.write(`<tr><td>${guestName}</td><td>${room}</td><td>${roomType}</td><td>${eta}</td><td>${paxString}</td></tr>`);
+        });
+        printWindow.document.write('</tbody></table>');
+        printWindow.document.write('</body></html>');
+        printWindow.document.close();
+        printWindow.print();
+    }
+
+    // Modify Stay: Show a modal (placeholder for now)
+    function showModifyStayModal() {
+        alert('Modify Stay feature coming soon! Here you will be able to change dates, room, or guest details for current guests.');
     }
 
     showDashboard();

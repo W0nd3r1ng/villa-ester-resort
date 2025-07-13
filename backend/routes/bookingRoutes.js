@@ -74,9 +74,7 @@ router.get('/:id',
  * @desc    Create a new booking
  * @access  Public
  */
-router.post('/',
-  bookingController.createBooking
-);
+router.post('/', bookingController.uploadProof, bookingController.createBooking);
 
 /**
  * @route   PUT /api/bookings/:id

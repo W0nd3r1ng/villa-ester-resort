@@ -285,15 +285,21 @@
                         <label for="modal-adults">Adults</label>
                         <div class="input-with-icon">
                             <input type="number" id="modal-adults" placeholder="Number of adults" min="1" required>
-                            
                         </div>
                     </div>
                     <div class="modal-form-group">
                         <label for="modal-children">Children</label>
                         <div class="input-with-icon">
                             <input type="number" id="modal-children" placeholder="Number of children" min="0">
-                            
                         </div>
+                    </div>
+                </div>
+                <!-- Proof of Payment Upload -->
+                <div class="modal-form-row">
+                    <div class="modal-form-group">
+                        <label for="modal-proof">Proof of Payment (screenshot/image)</label>
+                        <input type="file" id="modal-proof" accept="image/*" required>
+                        <div id="modal-proof-preview" style="margin-top:8px;"></div>
                     </div>
                 </div>
                 <div class="modal-ai-room-assignment">
@@ -315,6 +321,10 @@
                     <button type="button" class="btn cancel-btn" id="modal-cancel-btn">Cancel</button>
                 </div>
             </form>
+            <!-- Booking Note -->
+            <div class="modal-booking-note" style="margin-top:18px; color:#6c63ff; font-size:1.05em; background:#f8f8ff; border-radius:8px; padding:12px 16px;">
+                <strong>Note:</strong> To place a booking, you must pay the price of the cottage. Entrance fees will be collected on the day of arrival.
+            </div>
         </div>
     </div>
     <style>

@@ -109,6 +109,23 @@ bookingModal && bookingModal.addEventListener('click', function(e) {
     if (e.target === bookingModal) closeBookingModal();
 });
 
+// --- Proof of Payment Image Preview ---
+const proofInput = document.getElementById('modal-proof');
+const proofPreview = document.getElementById('modal-proof-preview');
+if (proofInput && proofPreview) {
+    proofInput.addEventListener('change', function() {
+        proofPreview.innerHTML = '';
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                proofPreview.innerHTML = `<img src="${e.target.result}" alt="Proof of Payment" style="max-width:180px;max-height:120px;border-radius:8px;box-shadow:0 2px 8px #ccc;">`;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+}
+
 // --- Booking Submission Logic ---
 const modalBookingForm = document.querySelector('.modal-booking-form');
 if (modalBookingForm) {
@@ -136,27 +153,30 @@ if (modalBookingForm) {
         const adults = parseInt(document.getElementById('modal-adults').value, 10) || 0;
         const children = parseInt(document.getElementById('modal-children').value, 10) || 0;
         const numberOfPeople = adults + children;
-        // Prepare booking data
-        const bookingData = {
-            bookingDate,
-            bookingTime,
-            duration,
-            numberOfPeople,
-            specialRequests,
-            contactPhone: phone,
-            contactEmail: email,
-            notes: `Cottage Type: ${cottageType}; Booking Type: ${bookingType}; Full Name: ${fullName}`
-        };
+        const proofFile = document.getElementById('modal-proof').files[0];
+        // Prepare FormData
+        const formData = new FormData();
+        formData.append('bookingDate', bookingDate);
+        formData.append('bookingTime', bookingTime);
+        formData.append('duration', duration);
+        formData.append('numberOfPeople', numberOfPeople);
+        formData.append('specialRequests', specialRequests);
+        formData.append('contactPhone', phone);
+        formData.append('contactEmail', email);
+        formData.append('notes', `Cottage Type: ${cottageType}; Booking Type: ${bookingType}; Full Name: ${fullName}`);
+        formData.append('fullName', fullName);
+        formData.append('cottageType', cottageType);
+        if (proofFile) formData.append('proofOfPayment', proofFile);
         // Send to backend
         try {
             const response = await fetch('https://villa-ester-backend.onrender.com/api/bookings', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(bookingData)
+                body: formData
             });
             if (response.ok) {
                 alert('Booking submitted successfully!');
                 modalBookingForm.reset();
+                if (proofPreview) proofPreview.innerHTML = '';
                 closeBookingModal();
             } else {
                 const error = await response.json();
@@ -166,7 +186,7 @@ if (modalBookingForm) {
             alert('Booking failed: ' + err.message);
         }
     });
-} 
+}
 
 // --- Review Modal Logic ---
 const openReviewModalBtn = document.getElementById('open-review-modal');
