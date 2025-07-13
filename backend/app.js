@@ -3,13 +3,24 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
 
-const bookingRoutes = require('./routes/bookings');
+const bookingRoutes = require('./routes/bookingRoutes');
 const cottageRoutes = require('./routes/cottages');
 const recommendationRoutes = require('./routes/recommendations');
 const reviewRoutes = require('./routes/reviews');
 
 const app = express();
-app.use(cors());
+// CORS configuration
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || '*',
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: true,
+  optionsSuccessStatus: 200
+}));
+
+// Handle preflight requests
+app.options('*', cors());
+
 app.use(express.json());
 
 // Add root route
