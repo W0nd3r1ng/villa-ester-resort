@@ -25,11 +25,11 @@
             background-color: #fff;
             padding: 20px;
             box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-            height: 100%; /* Take full height of parent (body) */
+            height: 100vh;
             display: flex;
             flex-direction: column;
-            overflow-y: hidden; /* Prevent sidebar from scrolling */
-            flex-shrink: 0; /* Prevent sidebar from shrinking */
+            overflow-y: hidden;
+            flex-shrink: 0;
         }
         .sidebar-header {
             display: flex;
@@ -66,8 +66,44 @@
             margin-right: 10px;
             font-size: 1.1em;
         }
-        .sidebar-settings-heading {
-            pointer-events: none;
+        .sidebar-settings {
+            margin-top: 40px;
+            padding-left: 0;
+        }
+        .sidebar-settings h4 {
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            margin-left: 18px;
+            color: #222;
+        }
+        .sidebar-settings ul {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+        }
+        .sidebar-settings li {
+            margin-bottom: 0;
+        }
+        .sidebar-settings a {
+            display: flex;
+            align-items: center;
+            padding: 10px 18px;
+            color: #6a0dad;
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: background 0.2s, color 0.2s;
+        }
+        .sidebar-settings a:hover, .sidebar-settings a.active {
+            background: #ede9fe;
+            color: #4b0082;
+        }
+        .sidebar-settings i {
+            margin-right: 10px;
+            font-size: 1.1em;
         }
         .main-content {
             flex-grow: 1;
@@ -850,10 +886,15 @@
                 <li><a href="#" data-panel="bookings-panel"><i class="fas fa-calendar-alt"></i> Bookings</a></li>
                 <li><a href="#" data-panel="customers-panel"><i class="fas fa-users"></i> Customers</a></li>
                 <li><a href="#" data-panel="analytics-panel"><i class="fas fa-chart-bar"></i> Analytics</a></li>
-                <li class="sidebar-settings-heading" style="margin-top:40px; margin-left:18px; font-size:1rem; font-weight:700; letter-spacing:1px; color:#222; cursor:default;">SETTINGS</li>
-                <li><a href="#" data-panel="admin-account-panel"><i class="fas fa-user-circle"></i> Account</a></li>
             </ul>
         </nav>
+        <div class="sidebar-settings">
+            <h4>SETTINGS</h4>
+            <ul>
+                <li><a href="#" data-panel="admin-account-panel"><i class="fas fa-user-circle"></i> Account</a></li>
+                <li><a href="#" data-panel="preferences-panel"><i class="fas fa-cogs"></i> Preferences</a></li>
+            </ul>
+        </div>
         <div class="admin-user-section">
             <img src="https://via.placeholder.com/40" alt="Admin User" class="admin-user-avatar">
             <div>
