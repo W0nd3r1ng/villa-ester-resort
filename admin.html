@@ -809,14 +809,41 @@
             background: #f8f8fa;
             color: #222;
         }
+        .sidebar-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .sidebar-menu {
+            flex: 1 1 auto;
+        }
+        .admin-user-section {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            border-top: 1px solid #eee;
+            margin-top: auto;
+            background: #fff;
+        }
+        .admin-user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .admin-user-name {
+            font-weight: bold;
+            margin: 0;
+        }
+        .admin-user-role {
+            color: #777;
+            font-size: 0.9em;
+            margin: 0;
+        }
     </style>
 </head>
 <body>
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <span>Villa Ester Resort</span>
-            <button><i class="fas fa-plus"></i></button>
-        </div>
+    <div class="sidebar-container">
         <nav class="sidebar-menu">
             <ul>
                 <li><a href="#" data-panel="dashboard-panel"><i class="fas fa-th-large"></i> Dashboard</a></li>
@@ -1797,6 +1824,75 @@
                 };
             }
         });
+
+        // --- Analytics Panel: Render Live Data ---
+        async function renderAnalyticsPanel() {
+            // Quick Stats
+            const bookings = await fetchAPI('/api/admin/bookings');
+            const today = new Date().toISOString().slice(0, 10);
+            const todayBookings = bookings.filter(b => (b.bookingDate || '').slice(0,10) === today);
+            const todayRevenue = todayBookings.reduce((sum, b) => sum + (b.price || 0), 0);
+            const completed = bookings.filter(b => (b.status || '').toLowerCase() === 'completed').length;
+            const cancelled = bookings.filter(b => (b.status || '').toLowerCase() === 'cancelled').length;
+            // Quick Stats
+            const quickStats = [
+                { icon: 'fa-calendar-check', label: "Today's Bookings", value: todayBookings.length },
+                { icon: 'fa-dollar-sign', label: "Today's Revenue", value: `₱${todayRevenue.toLocaleString()}` },
+                { icon: 'fa-check-circle', label: 'Completed', value: completed },
+                { icon: 'fa-times-circle', label: 'Cancelled', value: cancelled }
+            ];
+            const quickStatsCards = document.querySelectorAll('#analytics-panel .quick-stats-section .stat-card');
+            quickStats.forEach((stat, i) => {
+                if (quickStatsCards[i]) {
+                    quickStatsCards[i].querySelector('h3').textContent = stat.label;
+                    quickStatsCards[i].querySelector('p').textContent = stat.value;
+                    quickStatsCards[i].querySelector('i').className = `fas ${stat.icon}`;
+                }
+            });
+            // Weekly Bookings
+            const weekDays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+            const bars = document.querySelectorAll('#analytics-panel .bar-chart .bar');
+            const now = new Date();
+            let weekCounts = Array(5).fill(0);
+            for (let i = 0; i < 5; i++) {
+                const d = new Date(now);
+                d.setDate(now.getDate() - (4-i));
+                const dayStr = d.toISOString().slice(0,10);
+                weekCounts[i] = bookings.filter(b => (b.bookingDate || '').slice(0,10) === dayStr).length;
+                if (bars[i]) {
+                    bars[i].style.height = `${Math.max(10, weekCounts[i]*15)}%`;
+                    bars[i].querySelector('.label').textContent = weekDays[d.getDay()];
+                }
+            }
+            // Live Booking Status
+            const statusStats = [
+                { icon: 'fa-clock', label: 'Upcoming', value: bookings.filter(b => (b.status || '').toLowerCase() === 'upcoming').length },
+                { icon: 'fa-spinner', label: 'In Progress', value: bookings.filter(b => (b.status || '').toLowerCase() === 'in progress').length },
+                { icon: 'fa-check-circle', label: 'Completed', value: completed },
+                { icon: 'fa-exclamation-circle', label: 'No-show', value: bookings.filter(b => (b.status || '').toLowerCase() === 'no-show').length }
+            ];
+            const statusCards = document.querySelectorAll('#analytics-panel .status-cards .stat-card');
+            statusStats.forEach((stat, i) => {
+                if (statusCards[i]) {
+                    statusCards[i].querySelector('h3').textContent = stat.label;
+                    statusCards[i].querySelector('p').textContent = stat.value;
+                    statusCards[i].querySelector('i').className = `fas ${stat.icon}`;
+                }
+            });
+            // Monthly Revenue
+            const report = await fetchAPI('/api/admin/report/monthly');
+            const revenueCard = document.querySelector('#analytics-panel .revenue-card p');
+            if (revenueCard && report && report.totalRevenue !== undefined) {
+                revenueCard.textContent = `₱${report.totalRevenue.toLocaleString()}`;
+            }
+        }
+        // Call renderAnalyticsPanel when Analytics panel is shown
+        const analyticsSidebarLink = document.querySelector('.sidebar-menu ul li a[data-panel="analytics-panel"]');
+        if (analyticsSidebarLink) {
+            analyticsSidebarLink.addEventListener('click', function() {
+                renderAnalyticsPanel();
+            });
+        }
     </script>
 </body>
 </html> 
