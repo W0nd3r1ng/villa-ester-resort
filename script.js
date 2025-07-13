@@ -305,10 +305,15 @@ if (availabilityForm) {
         
         try {
             // Fetch available cottages
+            console.log('Fetching cottages from API...');
             const response = await fetch('https://villa-ester-backend.onrender.com/api/cottages');
+            console.log('Response status:', response.status);
+            
             const data = await response.json();
+            console.log('API response:', data);
             
             if (data.success && Array.isArray(data.data)) {
+                console.log('Found cottages:', data.data.length);
                 // Filter cottages based on availability (simplified logic)
                 const availableCottages = data.data.filter(cottage => {
                     // For demo purposes, show all cottages as available
@@ -316,8 +321,10 @@ if (availabilityForm) {
                     return cottage.capacity >= guests;
                 });
                 
+                console.log('Available cottages:', availableCottages);
                 displayCottages(availableCottages);
             } else {
+                console.log('No cottages found or invalid response format');
                 showNoResults();
             }
         } catch (error) {
