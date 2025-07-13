@@ -739,6 +739,95 @@
         .input-with-icon input {
             padding-left: 40px !important;
         }
+        .settings-card {
+            max-width: 400px;
+            margin: 40px auto;
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 2px 16px rgba(80, 80, 120, 0.08);
+            padding: 36px 32px 32px 32px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .settings-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .settings-avatar-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .profile-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: #ede9fe;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: #6a0dad;
+            margin-right: 16px;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 12px 0;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .btn-primary {
+            background: #6a0dad;
+            color: #fff;
+        }
+        .btn-outline-primary {
+            background: #fff;
+            color: #6a0dad;
+            border: 2px solid #6a0dad;
+        }
+        .btn-secondary {
+            background: #ede9fe;
+            color: #6a0dad;
+            border: none;
+            margin-left: 8px;
+            width: auto;
+            padding: 8px 18px;
+            font-size: 1rem;
+        }
+        .btn-danger {
+            background: #e74c3c;
+            color: #fff;
+            margin-top: 18px;
+        }
+        .settings-form-group {
+            width: 100%;
+            margin-bottom: 18px;
+        }
+        .settings-form-group label {
+            display: block;
+            font-size: 0.98rem;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: #444;
+        }
+        .settings-form-group input {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+            background: #f8f8fa;
+            color: #222;
+        }
     </style>
 </head>
 <body>
@@ -761,7 +850,6 @@
             <nav class="sidebar-menu">
                 <ul>
                     <li><a href="#"><i class="fas fa-user-circle"></i> Account</a></li>
-                    <li><a href="#"><i class="fas fa-cogs"></i> Preferences</a></li>
                 </ul>
             </nav>
         </div>
@@ -934,28 +1022,30 @@
 
     <!-- Admin Account Panel -->
     <div class="main-content" style="display:none;" id="admin-account-panel">
-        <h2 class="settings-title">Profile information</h2>
-        <div class="settings-avatar-row">
-            <div class="profile-avatar">
-                <span class="material-icons">person</span>
+        <div class="settings-card">
+            <h2 class="settings-title">Profile information</h2>
+            <div class="settings-avatar-row">
+                <div class="profile-avatar">
+                    <span class="material-icons">person</span>
+                </div>
+                <button class="btn btn-secondary" id="admin-upload-photo-btn">Upload photo</button>
             </div>
-            <button class="btn btn-secondary" id="admin-upload-photo-btn">Upload photo</button>
+            <div class="settings-form-group">
+                <label>Display name</label>
+                <input type="text" id="admin-profile-username" value="admin" readonly>
+            </div>
+            <div class="settings-form-group">
+                <label>Email</label>
+                <input type="email" id="admin-profile-email" value="admin@villaester.com" readonly>
+            </div>
+            <div class="settings-form-group">
+                <label>Phone number</label>
+                <input type="text" id="admin-profile-phone" value="" readonly>
+            </div>
+            <button class="btn btn-primary" id="admin-change-number-btn">Change Number</button>
+            <button class="btn btn-outline-primary" id="admin-change-password-btn">Change Password</button>
+            <button class="btn btn-danger" id="admin-signout-btn">Sign Out</button>
         </div>
-        <div class="settings-form-group">
-            <label>Display name</label>
-            <input type="text" id="admin-profile-username" value="admin" readonly>
-        </div>
-        <div class="settings-form-group">
-            <label>Email</label>
-            <input type="email" id="admin-profile-email" value="admin@villaester.com" readonly>
-        </div>
-        <div class="settings-form-group">
-            <label>Phone number</label>
-            <input type="text" id="admin-profile-phone" value="" readonly>
-        </div>
-        <button class="btn btn-primary" id="admin-change-number-btn">Change Number</button>
-        <button class="btn btn-outline" id="admin-change-password-btn">Change Password</button>
-        <button class="btn btn-danger" id="admin-signout-btn">Sign Out</button>
     </div>
 
     <div class="main-content" style="display: none;" id="customers-panel">
