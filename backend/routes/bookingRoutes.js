@@ -15,8 +15,8 @@ const {
   validateDateRange,
   validateBookingTimeSlot
 } = require('../middleware/bookingValidation');
-const auth = require('../middleware/auth');
-const admin = require('../middleware/admin');
+const { auth } = require('../middleware/auth');
+const { admin } = require('../middleware/admin');
 
 /**
  * @route   GET /api/bookings
