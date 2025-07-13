@@ -1047,46 +1047,135 @@
             if (options.onShow) options.onShow(modal);
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
+        // Utility: Fetch helper
+        async function fetchAPI(url) {
+          const res = await fetch(url);
+          const data = await res.json();
+          if (!data.success) throw new Error(data.message || 'API error');
+          return data.data;
+        }
+
+        // --- Dashboard Overview ---
+        async function updateDashboardOverview() {
+          // Fetch occupancy and revenue
+          const occupancy = await fetchAPI('/api/admin/room-occupancy');
+          const bookings = await fetchAPI('/api/admin/bookings');
+          const today = new Date().toISOString().slice(0, 10);
+          let occupied = occupancy.filter(c => c.occupied).length;
+          let total = occupancy.length;
+          let occupancyPercent = total ? Math.round((occupied / total) * 100) : 0;
+          let todayBookings = bookings.filter(b => (b.bookingDate || '').slice(0,10) === today).length;
+          let todayRevenue = bookings.filter(b => (b.bookingDate || '').slice(0,10) === today).reduce((sum, b) => sum + (b.price || 0), 0);
+          document.querySelector('.dashboard-overview .card:nth-child(1) p').textContent = `${occupancyPercent}% of rooms currently occupied`;
+          document.querySelector('.dashboard-overview .card:nth-child(2) p').textContent = `₱${todayRevenue.toLocaleString()} from ${todayBookings} bookings`;
+        }
+
+        // --- Room Occupancy Table ---
+        async function updateRoomOccupancyTable() {
+          const occupancy = await fetchAPI('/api/admin/room-occupancy');
+          const tbody = document.querySelector('.room-occupancy-status tbody');
+          tbody.innerHTML = '';
+          occupancy.forEach(cottage => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${cottage.name}</td><td class="${cottage.occupied ? 'occupied' : 'vacant'}">${cottage.occupied ? 'Occupied' : 'Vacant'}</td>`;
+            tbody.appendChild(tr);
+          });
+        }
+
+        // --- Bookings Panel ---
+        async function renderBookings(statusFilter = 'all') {
+          const bookings = await fetchAPI('/api/admin/bookings');
+          const bookingsTableBody = document.getElementById('bookings-table-body');
+          bookingsTableBody.innerHTML = '';
+          let filtered = statusFilter === 'all' ? bookings : bookings.filter(b => (b.status || '').toLowerCase() === statusFilter.toLowerCase());
+          filtered.forEach(booking => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td><i class="fas fa-calendar-alt"></i></td>
+              <td>${booking._id}</td>
+              <td>${booking.userId?.name || booking.guest || 'N/A'}</td>
+              <td>${booking.cottageType || booking.roomType || 'N/A'}</td>
+              <td>${booking.bookingDate ? new Date(booking.bookingDate).toLocaleDateString() : 'N/A'}</td>
+              <td>₱${booking.price?.toLocaleString() || 'N/A'}</td>
+              <td>${booking.status || 'N/A'}</td>
+              <td>
+                <i class="fas fa-eye view-booking" data-id="${booking._id}" style="cursor:pointer;color:#6a0dad;margin-right:8px;"></i>
+              </td>`;
+            bookingsTableBody.appendChild(row);
+          });
+          // Add listeners for view details
+          bookingsTableBody.querySelectorAll('.view-booking').forEach(icon => {
+            icon.onclick = async function() {
+              const id = this.getAttribute('data-id');
+              const booking = await fetchAPI(`/api/admin/booking/${id}`);
+              showAdminModal('Booking Details', `<ul style='padding-left:18px;'>
+                <li><b>ID:</b> ${booking._id}</li>
+                <li><b>Guest:</b> ${booking.userId?.name || 'N/A'}</li>
+                <li><b>Room Type:</b> ${booking.cottageType || 'N/A'}</li>
+                <li><b>Dates:</b> ${booking.bookingDate ? new Date(booking.bookingDate).toLocaleDateString() : 'N/A'}</li>
+                <li><b>Price:</b> ₱${booking.price?.toLocaleString() || 'N/A'}</li>
+                <li><b>Status:</b> ${booking.status || 'N/A'}</li>
+              </ul>`);
+            };
+          });
+        }
+
+        // --- Customers Panel ---
+        async function renderCustomers(filter = '') {
+          const customers = await fetchAPI('/api/admin/customers');
+          const customersTableBody = document.getElementById('customers-table-body');
+          customersTableBody.innerHTML = '';
+          let filtered = customers.filter(c =>
+            c.name.toLowerCase().includes(filter.toLowerCase()) ||
+            c.email.toLowerCase().includes(filter.toLowerCase()) ||
+            c.phone.includes(filter)
+          );
+          if (filtered.length === 0) {
+            customersTableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#888;">No customers found.</td></tr>';
+          } else {
+            filtered.forEach((c) => {
+              const row = document.createElement('tr');
+              row.innerHTML = `
+                <td>${c.name}</td>
+                <td>${c.email}</td>
+                <td>${c.phone}</td>
+                <td></td>
+                <td><i class="fas fa-eye view-customer" data-id="${c._id}" style="cursor:pointer;color:#6a0dad;margin-right:8px;"></i></td>`;
+              customersTableBody.appendChild(row);
+            });
+          }
+          customersTableBody.querySelectorAll('.view-customer').forEach(icon => {
+            icon.onclick = async function() {
+              const id = this.getAttribute('data-id');
+              const customer = await fetchAPI(`/api/admin/customer/${id}`);
+              showAdminModal('Customer Details', `<ul style='padding-left:18px;'>
+                <li><b>Name:</b> ${customer.name}</li>
+                <li><b>Email:</b> ${customer.email}</li>
+                <li><b>Phone:</b> ${customer.phone}</li>
+              </ul>`);
+            };
+          });
+        }
+
+        // --- Reviews Panel (if needed) ---
+        async function renderReviews() {
+          const reviews = await fetchAPI('/api/admin/reviews');
+          // Render reviews in a panel or modal as needed
+        }
+
+        // --- Analytics/Reports ---
+        async function renderMonthlyReport() {
+          const report = await fetchAPI('/api/admin/report/monthly');
+          // Render report data in the analytics panel
+        }
+
+        // --- Event Listeners and Initial Load ---
+        document.addEventListener('DOMContentLoaded', async function() {
             // --- SIDEBAR NAVIGATION ---
             const sidebarLinks = document.querySelectorAll('.sidebar-menu ul li a');
             const mainContentPanels = document.querySelectorAll('.main-content');
             const bookingsTableBody = document.getElementById('bookings-table-body');
             const bookingTabs = document.querySelectorAll('.booking-tab');
-
-            const allBookingsData = [
-                { id: 'BK-2023-001', guest: 'John Smith', roomType: 'Deluxe Room', dates: 'Nov 15-18', price: '$750', status: 'Confirmed' },
-                { id: 'BK-2023-002', guest: 'Maria Garcia', roomType: 'Suite', dates: 'Nov 16-20', price: '$1,200', status: 'Pending' },
-                { id: 'BK-2023-003', guest: 'Robert Chen', roomType: 'Family Room', dates: 'Nov 18-22', price: '$980', status: 'Confirmed' },
-                { id: 'BK-2023-004', guest: 'Sarah Johnson', roomType: 'Standard Room', dates: 'Nov 20-22', price: '$450', status: 'Pending' },
-                { id: 'BK-2023-005', guest: 'David Wilson', roomType: 'Villa', dates: 'Nov 22-28', price: '$2,400', status: 'Confirmed' }
-            ];
-
-            function renderBookings(statusFilter) {
-                bookingsTableBody.innerHTML = '';
-                const filteredBookings = statusFilter === 'all' 
-                    ? allBookingsData 
-                    : allBookingsData.filter(booking => booking.status.toLowerCase() === statusFilter.toLowerCase());
-
-                filteredBookings.forEach(booking => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td><i class="fas fa-calendar-alt"></i></td>
-                        <td>${booking.id}</td>
-                        <td>${booking.guest}</td>
-                        <td>${booking.roomType}</td>
-                        <td>${booking.dates}</td>
-                        <td>${booking.price}</td>
-                        <td>${booking.status}</td>
-                        <td>
-                            <i class="fas fa-pencil-alt edit-icon"></i>
-                            <i class="fas fa-ellipsis-v more-icon"></i>
-                        </td>
-                    `;
-                    bookingsTableBody.appendChild(row);
-                });
-                addBookingRowListeners();
-            }
 
             function showPanel(panelId) {
                 mainContentPanels.forEach(panel => {
@@ -1328,34 +1417,6 @@
                 { name: 'Bob Smith', email: 'bob@example.com', phone: '09181234567', bookings: 1 },
                 { name: 'Carla Reyes', email: 'carla@example.com', phone: '09191234567', bookings: 5 }
             ];
-            function renderCustomers(filter = '') {
-                customersTableBody.innerHTML = '';
-                let filtered = customersData.filter(c =>
-                    c.name.toLowerCase().includes(filter.toLowerCase()) ||
-                    c.email.toLowerCase().includes(filter.toLowerCase()) ||
-                    c.phone.includes(filter)
-                );
-                if (filtered.length === 0) {
-                    customersTableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#888;">No customers found.</td></tr>';
-                } else {
-                    filtered.forEach((c, idx) => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${c.name}</td>
-                            <td>${c.email}</td>
-                            <td>${c.phone}</td>
-                            <td>${c.bookings}</td>
-                            <td>
-                                <i class="fas fa-eye view-customer" title="View" data-idx="${idx}" style="cursor:pointer;color:#6a0dad;margin-right:8px;"></i>
-                                <i class="fas fa-pencil-alt edit-customer" title="Edit" data-idx="${idx}" style="cursor:pointer;color:#007bff;margin-right:8px;"></i>
-                                <i class="fas fa-trash delete-customer" title="Delete" data-idx="${idx}" style="cursor:pointer;color:#e74c3c;"></i>
-                            </td>
-                        `;
-                        customersTableBody.appendChild(row);
-                    });
-                }
-                addCustomerRowListeners();
-            }
             function addCustomerRowListeners() {
                 customersTableBody.querySelectorAll('.view-customer').forEach(icon => {
                     icon.onclick = function() {

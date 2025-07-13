@@ -10,6 +10,7 @@ const cottageRoutes = require('./routes/cottages');
 const recommendationRoutes = require('./routes/recommendations');
 const reviewRoutes = require('./routes/reviews');
 const userRoutes = require('./routes/userRoutes');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 const server = http.createServer(app);
@@ -59,6 +60,7 @@ app.use('/api/cottages', cottageRoutes);
 app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/uploads', express.static('uploads'));
 
 // Socket.IO connection handling
