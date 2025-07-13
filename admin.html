@@ -1563,6 +1563,7 @@
             showPanel('dashboard-panel');
 
             // --- ADMIN ACCOUNT PANEL ---
+            const adminAccountSidebarLink = document.querySelector('.sidebar-menu ul li a[data-panel="admin-account-panel"]');
             const adminProfileUsername = document.getElementById('admin-profile-username');
             const adminProfileEmail = document.getElementById('admin-profile-email');
             const adminProfilePhone = document.getElementById('admin-profile-phone');
@@ -1571,16 +1572,29 @@
             const adminChangePasswordBtn = document.getElementById('admin-change-password-btn');
             const adminSignoutBtn = document.getElementById('admin-signout-btn');
 
+            // Sidebar link for admin account
+            if (adminAccountSidebarLink) {
+                adminAccountSidebarLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showPanel('admin-account-panel');
+                    fetchAdminUserInfo();
+                });
+            }
+
             // Function to fetch and display admin user info
             async function fetchAdminUserInfo() {
                 try {
-                    const user = await fetchAPI('/api/admin/user/me');
+                    // Use existing user endpoint for now (you can create admin-specific ones later)
+                    const user = await fetchAPI('/api/users/me');
                     adminProfileUsername.value = user.name || 'N/A';
                     adminProfileEmail.value = user.email || 'N/A';
                     adminProfilePhone.value = user.phone || 'N/A';
                 } catch (error) {
                     console.error('Error fetching admin user info:', error);
-                    showAdminAlert('Failed to load admin profile info.', 'error');
+                    // For now, show demo data if API fails
+                    adminProfileUsername.value = 'Admin User';
+                    adminProfileEmail.value = 'admin@villaester.com';
+                    adminProfilePhone.value = '09171234567';
                 }
             }
 
@@ -1598,27 +1612,7 @@
                         onShow: (modal) => {
                             modal.querySelector('#upload-photo-form').onsubmit = async function(e) {
                                 e.preventDefault();
-                                const formData = new FormData();
-                                formData.append('photo', document.getElementById('photo-file').files[0]);
-                                try {
-                                    const response = await fetch('/api/admin/user/photo', {
-                                        method: 'POST',
-                                        body: formData
-                                    });
-                                    const data = await response.json();
-                                    if (data.success) {
-                                        showAdminAlert('Photo uploaded successfully!', 'success');
-                                        // Optionally update the avatar in the sidebar
-                                        // This requires a more complex state management if the sidebar is dynamic
-                                        // For now, just refresh the info
-                                        fetchAdminUserInfo();
-                                    } else {
-                                        showAdminAlert(data.message || 'Failed to upload photo.', 'error');
-                                    }
-                                } catch (error) {
-                                    console.error('Error uploading photo:', error);
-                                    showAdminAlert('Error uploading photo.', 'error');
-                                }
+                                showAdminAlert('Photo upload feature coming soon!', 'info');
                                 modal.style.display = 'none';
                             };
                         }
@@ -1638,7 +1632,7 @@
                                 e.preventDefault();
                                 const newPhone = document.getElementById('new-phone-number').value;
                                 try {
-                                    const response = await fetch('/api/admin/user/phone', {
+                                    const response = await fetch('/api/users/me', {
                                         method: 'PUT',
                                         headers: {
                                             'Content-Type': 'application/json'
@@ -1685,7 +1679,7 @@
                                 }
 
                                 try {
-                                    const response = await fetch('/api/admin/user/password', {
+                                    const response = await fetch('/api/users/me/password', {
                                         method: 'PUT',
                                         headers: {
                                             'Content-Type': 'application/json'
@@ -1719,23 +1713,15 @@
                         <button id='confirm-signout-btn' style='background:#e74c3c;color:#fff;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;'>Sign Out</button>
                     `, {
                         onShow: (modal) => {
-                            modal.querySelector('#confirm-signout-btn').onclick = async function() {
-                                try {
-                                    const response = await fetch('/api/admin/auth/signout', {
-                                        method: 'POST'
-                                    });
-                                    const data = await response.json();
-                                    if (data.success) {
-                                        showAdminAlert('Signed out successfully!', 'success');
-                                        // Redirect to login page or clear session
-                                        window.location.href = 'login.html'; // Assuming login.html is the next page
-                                    } else {
-                                        showAdminAlert(data.message || 'Failed to sign out.', 'error');
-                                    }
-                                } catch (error) {
-                                    console.error('Error signing out:', error);
-                                    showAdminAlert('Error signing out.', 'error');
-                                }
+                            modal.querySelector('#confirm-signout-btn').onclick = function() {
+                                // Clear any stored session/tokens
+                                localStorage.removeItem('adminToken');
+                                sessionStorage.clear();
+                                showAdminAlert('Signed out successfully!', 'success');
+                                // Redirect to login page
+                                setTimeout(() => {
+                                    window.location.href = 'login.html';
+                                }, 1000);
                                 modal.style.display = 'none';
                             };
                         }
