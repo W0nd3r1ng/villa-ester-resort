@@ -666,11 +666,33 @@ document.addEventListener('DOMContentLoaded', function() {
         alert('Modify Stay feature coming soon! Here you will be able to change dates, room, or guest details for current guests.');
     }
 
-    // --- Settings: Change Number Functionality ---
+    // --- Settings: Real Backend Integration ---
+    const token = localStorage.getItem('token');
+    const usernameInput = document.getElementById('profile-username');
+    const emailInput = document.getElementById('profile-email');
     const phoneInput = document.getElementById('profile-phone');
+    // Fetch user profile on settings panel load
+    async function fetchUserProfile() {
+        if (!token) return;
+        try {
+            const res = await fetch('https://villa-ester-backend.onrender.com/api/users/me', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const data = await res.json();
+            if (data.success && data.data) {
+                if (usernameInput) usernameInput.value = data.data.name || 'clerk';
+                if (emailInput) emailInput.value = data.data.email || '';
+                if (phoneInput) phoneInput.value = data.data.phone || '';
+            }
+        } catch (err) { /* ignore */ }
+    }
+    // Call on load
+    fetchUserProfile();
+
+    // Change Number logic
     const changeNumberBtn = document.getElementById('change-number-btn');
     if (changeNumberBtn && phoneInput) {
-        changeNumberBtn.addEventListener('click', function() {
+        changeNumberBtn.addEventListener('click', async function() {
             if (phoneInput.readOnly) {
                 phoneInput.readOnly = false;
                 phoneInput.focus();
@@ -681,23 +703,89 @@ document.addEventListener('DOMContentLoaded', function() {
                     showAlert('Please enter a valid phone number.', 'error');
                     return;
                 }
-                localStorage.setItem('clerk_phone', newPhone);
-                phoneInput.readOnly = true;
-                changeNumberBtn.textContent = 'Change Number';
-                showAlert('Phone number updated!', 'success');
+                try {
+                    const res = await fetch('https://villa-ester-backend.onrender.com/api/users/me', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + token
+                        },
+                        body: JSON.stringify({ phone: newPhone })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        phoneInput.readOnly = true;
+                        changeNumberBtn.textContent = 'Change Number';
+                        showAlert('Phone number updated!', 'success');
+                    } else {
+                        showAlert(data.message || 'Failed to update phone.', 'error');
+                    }
+                } catch (err) {
+                    showAlert('Failed to update phone.', 'error');
+                }
             }
         });
-        // Load saved phone if exists
-        const savedPhone = localStorage.getItem('clerk_phone');
-        if (savedPhone) phoneInput.value = savedPhone;
     }
-    // --- Settings: Sign Out Functionality ---
+    // Change Password modal logic
+    const changePasswordBtn = document.getElementById('change-password-btn');
+    const changePasswordModal = document.getElementById('change-password-modal');
+    const closePasswordModal = document.getElementById('close-password-modal');
+    if (changePasswordBtn && changePasswordModal) {
+        changePasswordBtn.addEventListener('click', function() {
+            changePasswordModal.style.display = 'flex';
+        });
+    }
+    if (closePasswordModal && changePasswordModal) {
+        closePasswordModal.addEventListener('click', function() {
+            changePasswordModal.style.display = 'none';
+            document.getElementById('change-password-form').reset();
+        });
+    }
+    // Change Password form submit
+    const changePasswordForm = document.getElementById('change-password-form');
+    if (changePasswordForm) {
+        changePasswordForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const current = document.getElementById('current-password').value;
+            const newPass = document.getElementById('new-password').value;
+            const confirm = document.getElementById('confirm-password').value;
+            if (newPass.length < 4) {
+                showAlert('New password must be at least 4 characters.', 'error');
+                return;
+            }
+            if (newPass !== confirm) {
+                showAlert('Passwords do not match.', 'error');
+                return;
+            }
+            try {
+                const res = await fetch('https://villa-ester-backend.onrender.com/api/users/me/password', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ currentPassword: current, newPassword: newPass })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showAlert('Password changed successfully!', 'success');
+                    changePasswordModal.style.display = 'none';
+                    changePasswordForm.reset();
+                } else {
+                    showAlert(data.message || 'Failed to change password.', 'error');
+                }
+            } catch (err) {
+                showAlert('Failed to change password.', 'error');
+            }
+        });
+    }
+    // Sign Out logic
     const signoutBtn = document.getElementById('signout-btn');
     if (signoutBtn) {
         signoutBtn.addEventListener('click', function() {
-            localStorage.clear();
+            localStorage.removeItem('token');
             showAlert('Signed out!', 'success');
-            setTimeout(() => window.location.reload(), 800);
+            setTimeout(() => window.location.href = 'login.html', 800);
         });
     }
 
