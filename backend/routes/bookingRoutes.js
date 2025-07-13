@@ -72,13 +72,9 @@ router.get('/:id',
 /**
  * @route   POST /api/bookings
  * @desc    Create a new booking
- * @access  Private
+ * @access  Public
  */
 router.post('/',
-  auth,
-  validateCreateBooking,
-  validateBookingTimeSlot,
-  handleValidationErrors,
   bookingController.createBooking
 );
 
