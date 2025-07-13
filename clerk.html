@@ -29,7 +29,7 @@
                      <h3>TOOLS</h3>
                      <ul>
                          <li><a href="#"><i class="material-icons">assessment</i> Reports</a></li>
-                         <li><a href="#"><i class="material-icons">settings</i> Settings</a></li>
+                         <li><a href="#" data-panel="settings-panel"><i class="material-icons">settings</i> Settings</a></li>
                      </ul>
                 </div>
             </nav>
@@ -319,6 +319,54 @@
                     <h2>Pending Bookings</h2>
                     <div id="pending-bookings-container"></div>
                     <p id="no-pending-bookings" style="text-align:center; color:#888; display:none;">No pending bookings.</p>
+                </div>
+            </div>
+
+            <!-- Settings Panel (hidden initially) -->
+            <div id="settings-panel" class="dashboard-panel" style="display:none;">
+                <div class="content-header">
+                    <h1>Settings</h1>
+                </div>
+                <div class="settings-section">
+                    <h2>Profile Info</h2>
+                    <form id="profile-info-form" class="settings-form">
+                        <label for="profile-name">Name</label>
+                        <input type="text" id="profile-name" placeholder="Enter your name">
+                        <label for="profile-email">Email</label>
+                        <input type="email" id="profile-email" placeholder="Enter your email">
+                        <label for="profile-phone">Phone</label>
+                        <input type="text" id="profile-phone" placeholder="Enter your phone number">
+                        <label for="profile-pic">Profile Picture</label>
+                        <input type="file" id="profile-pic" accept="image/*">
+                        <button type="submit" class="btn btn-primary">Save Profile</button>
+                    </form>
+                </div>
+                <div class="settings-section">
+                    <h2>Change Password</h2>
+                    <form id="change-password-form" class="settings-form">
+                        <label for="current-password">Current Password</label>
+                        <input type="password" id="current-password" required>
+                        <label for="new-password">New Password</label>
+                        <input type="password" id="new-password" required>
+                        <label for="confirm-password">Confirm New Password</label>
+                        <input type="password" id="confirm-password" required>
+                        <button type="submit" class="btn btn-primary">Change Password</button>
+                    </form>
+                </div>
+                <div class="settings-section">
+                    <h2>Notification Preferences</h2>
+                    <form id="notification-preferences-form" class="settings-form">
+                        <label><input type="checkbox" id="notif-email"> Email Notifications</label>
+                        <label><input type="checkbox" id="notif-sms"> SMS Notifications</label>
+                        <label><input type="checkbox" id="notif-popup"> Dashboard Popups</label>
+                        <button type="submit" class="btn btn-primary">Save Preferences</button>
+                    </form>
+                </div>
+                <div class="settings-section">
+                    <h2>Export Data</h2>
+                    <button class="btn btn-secondary" id="export-bookings-btn">Export Bookings (CSV)</button>
+                    <button class="btn btn-secondary" id="export-guests-btn">Export Guests (CSV)</button>
+                    <button class="btn btn-secondary" id="export-revenue-btn">Export Revenue (CSV)</button>
                 </div>
             </div>
 

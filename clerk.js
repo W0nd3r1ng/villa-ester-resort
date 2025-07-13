@@ -218,10 +218,6 @@ document.addEventListener('DOMContentLoaded', function() {
         updateRoomOccupancyTable();
     }
 
-    // Update in real time
-    socket.on('booking-created', updateDashboardAndTable);
-    socket.on('booking-updated', updateDashboardAndTable);
-
     // On dashboard load, update with real data
     function showDashboard() {
         mainDashboardView.style.display = 'flex';
